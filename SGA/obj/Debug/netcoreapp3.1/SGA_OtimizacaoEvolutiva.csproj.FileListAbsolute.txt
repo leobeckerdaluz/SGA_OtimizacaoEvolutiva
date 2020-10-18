@@ -1,0 +1,11 @@
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/obj/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.csprojAssemblyReference.cache
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/obj/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.AssemblyInfoInputs.cache
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/obj/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.AssemblyInfo.cs
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.deps.json
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.runtimeconfig.json
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.runtimeconfig.dev.json
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.dll
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/bin/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.pdb
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/obj/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.dll
+/home/bull/git/SGA_OtimizacaoEvolutiva/SGA/obj/Debug/netcoreapp3.1/SGA_OtimizacaoEvolutiva.pdb
