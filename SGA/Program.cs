@@ -28,7 +28,7 @@ namespace SGA
             // Os cromossomos possuem tamanhos iguais, então obtém uma
             // ... posição entre 0 e o tamanho de um dos cromossomos.
             int pos = random.Next(0, individuo1.Count);
-            Console.WriteLine("Popsição crossover: " + pos);
+            Console.WriteLine("Posição crossover: " + pos);
 
             // Cria as recombinações dos 2 novos indivíduos            
             List<bool> crossover1 = new List<bool>();
@@ -62,12 +62,42 @@ namespace SGA
         }
 
 
-        public List<bool> SelecionaPai(List<List<bool>> populacao, List<double> fitnesses, double sum = 0.0){
-            int posicao_pai = random.Next(0, populacao.Count);
+        public static List<bool> SelecionaPai(List<List<bool>> populacao, List<double> fitnesses, double sum){
+            // Normaliza o vetor fitness com a soma
+            for (int i = 0; i < fitnesses.Count; ++i){
+                fitnesses[i] /= sum;
+            }
 
-            List<bool> pai = populacao[posicao_pai];
+            // Ordena os arrays
+            var fitnesses_array = fitnesses.ToArray();
+            var populacao_array = populacao.ToArray();
+            Array.Sort(fitnesses_array, populacao_array);
 
-            return pai;
+            // Mostra o melhor resultado
+            Console.WriteLine("Melhor resultado -> f(x) = " + fitnesses_array[0]);
+
+            // Calcula o acumulado dos valores fitness normalizados
+            List<double> accumFitness = new List<double>();
+            for (int i=0; i<fitnesses_array.Length; ++i){
+                sum += fitnesses_array[i];
+                accumFitness.Add(sum);
+            }
+            
+            // Gera um valor aleatório para selecionar o pai
+            var rand_selecao_pai = random.NextDouble();
+            
+            // Seleciona o pai para retornar
+            for (int i=0; i<accumFitness.Count; ++i){
+                if (accumFitness[i] > rand_selecao_pai){
+                    List<bool> ret = (List<bool>)populacao_array[i];
+                    Console.Write("Retornando novo pai ===> ");
+                    print_bool_array(ret);
+                    return ret;
+                }
+            }
+            
+            // "ERROR: Não encontrou um pai";
+            return new List<bool>();
         }
 
 
@@ -96,10 +126,10 @@ namespace SGA
         
 
         private static double objective_function(double x){
-            double fitness = 0;
-            fitness = Math.Pow(x,3) + 2*Math.Pow(x,2) - 5*x;
+            double fitness = -Math.Pow(x,2) + 2;
 
             iteracoes++;
+            Console.WriteLine("iteracoes: " + iteracoes);
             
             // n = size(x, 2);
             
@@ -143,38 +173,39 @@ namespace SGA
             for(int i=0; i<tamanho_populacao; i++){
                 populacao.Add(GeraIndividuoBool(tamanho_genotipo));
             }
-            // Apresenta a população
-            for(int i=0; i<tamanho_populacao; i++){
-                Console.Write(i + ": ");
-                print_bool_array(populacao[i]);
-            }
-            Console.WriteLine("População gerada!");
             
-            
+
             // Loop de operações
             while (iteracoes < criterio_parada_nro_avaliacoes_funcao){
                 List<List<bool>> new_generation = new List<List<bool>>();
 
                 Console.WriteLine("----------------------------- NEW GENERATION ---------------------------------------");
                 nro_geracoes_completas++;
+            
+                // Apresenta a população
+                for(int i=0; i<tamanho_populacao; i++){
+                    Console.Write(i + ": ");
+                    print_bool_array(populacao[i]);
+                }
+                Console.WriteLine("População gerada!");
                 
                 // Calcula o fitness (valor da funcao)
                 double sum = 0.0;
                 List<double> fitnesses = new List<double>();
-                for (int i=0; i<fitnesses.Length; i++){
+                for (int i=0; i<populacao.Count; i++){
                     double x = listbool_to_double(populacao[i]);
-                    Console.WriteLine("x: " + x);
                     double value = objective_function(x);
-                    Console.WriteLine("funcao: " + value);
+                    Console.WriteLine("x = " + x + "  |  f(x) = " + value);
                     fitnesses.Add(value);
                     sum += value;
                 }
+                Console.WriteLine("SOMA = " + sum);
 
                 // Enquanto a quantidade de filhos gerada for menor que n, gera filhos
                 while(new_generation.Count < populacao.Count){
                     // Seleciona 2 da população
-                    List<bool> pai1 = SelecionaPai(populacao);
-                    List<bool> pai2 = SelecionaPai(populacao);
+                    List<bool> pai1 = SelecionaPai(populacao, fitnesses, sum);
+                    List<bool> pai2 = SelecionaPai(populacao, fitnesses, sum);
 
                     // Gera osCria os filhos
                     List<bool> new1 = pai1;
@@ -209,11 +240,14 @@ namespace SGA
                     new_generation.Add(new2);
                 }
 
+
                 // Substitui a população pela nova
                 populacao = new_generation;
             }
 
-
+            Console.WriteLine("======================================================");
+            Console.WriteLine("======================================================");
+            Console.WriteLine("======================================================");
             // Acabou as gerações, então vê a melhor resposta
             // List<bool> melhor_resposta = choose_best_chromosome(populacao);
 
