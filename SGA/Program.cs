@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-
 namespace SGA
 {
     public class SGA
@@ -22,7 +21,7 @@ namespace SGA
                 int n_variaveis_projeto = 10;  
                 double function_min = -600.0;
                 double function_max = 600.0;
-                fenotipo = fenotipo_to_fx(new_genotipo, n_variaveis_projeto, function_min, function_max);
+                fenotipo = CalculaFenotipos(new_genotipo, n_variaveis_projeto, function_min, function_max);
                 
                 // Calcula a f(x) a partir do fenótipo de cada variável de projeto
                 f_x = funcao_objetivo(fenotipo);
@@ -250,19 +249,20 @@ namespace SGA
 
             // Laço para os somatórios e pi
             for(int i=0; i<fenotipo_variaveis_projeto.Count; i++){
-                laco_somatorio += Math.Pow(fenotipo_variaveis_projeto[i], 2) / 4000.0;
-                laco_produto *= Math.Cos(Math.PI * fenotipo_variaveis_projeto[i] / Math.Sqrt(i));
-                // laco_produto *= Math.Cos(fenotipo_variaveis_projeto[i] / Math.Sqrt(i));
+                laco_somatorio += Math.Pow(fenotipo_variaveis_projeto[i], 2);
+                // laco_produto *= Math.Cos( Math.PI * fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
+                laco_produto *= Math.Cos( fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
             }
 
             // Expressão final de f(x)
-            double fx = (1 + laco_somatorio - laco_produto);
+            double fx = (1 + laco_somatorio/4000.0 - laco_produto);
+            // Console.WriteLine("f(x) calculada: " + fx);
 
             return fx;
         }
 
 
-        public static List<double> fenotipo_to_fx(List<bool> genotipo, int n_variaveis_projeto, double min, double max){
+        public static List<double> CalculaFenotipos(List<bool> genotipo, int n_variaveis_projeto, double min, double max){
             // Calcula o número de bits por variável de projeto
             int bits_por_variavel_projeto = genotipo.Count / n_variaveis_projeto;
 
@@ -291,7 +291,7 @@ namespace SGA
 
                 // Adiciona o fenótipo da variável na lista de fenótipos
                 fenotipo.Add(fenotipo_variavel_projeto);
-                Console.WriteLine("fenotipo x"+i+": " + fenotipo_variavel_projeto);
+                // Console.WriteLine("fenotipo x"+i+": " + fenotipo_variavel_projeto);
             }
 
             // Retorna o fenótipo 
@@ -316,12 +316,8 @@ namespace SGA
                 List<bool> cromossomo = GeraCromossomo(tamanho_genotipo);
                 Individuo new_individuo = new Individuo(cromossomo);
                 populacao.Add(new_individuo);
-                
-                // Apresenta a população
-                Console.Write(i + ": ");
-                print_bool_array(populacao[i].genotipo);
             }   
-            Console.WriteLine("População gerada!");
+            Console.WriteLine("População Inicial gerada!");
             
             // Loop de operações
             while (iteracoes < criterio_parada_nro_avaliacoes_funcao){
@@ -336,7 +332,9 @@ namespace SGA
 
                 // Apresenta a população
                 foreach(Individuo ind in populacao){
-                    Console.WriteLine("x = " + ind.fenotipo + "\t|  f(x) = " + ind.f_x);
+                    Console.Write("Genotipo: ");
+                    print_bool_array(ind.genotipo);
+                    Console.WriteLine("f(x): " + ind.f_x);
                 }
                 
                 // Adiciona o menor f(x) na lista de melhores resultados
