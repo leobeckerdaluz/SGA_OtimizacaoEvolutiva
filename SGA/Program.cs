@@ -8,19 +8,43 @@ namespace SGA
 {
     public class SGA
     {
+        public class Individuo{  
+            public List<bool> genotipo { get; set; }  
+            public List<double> fenotipo { get; set; }  
+            public double f_x { get; set; }  
+            public double freq_relativa { get; set; }  
+            
+            public Individuo(List<bool> new_genotipo){
+                // Seta o cromossomo
+                genotipo = new_genotipo;
+
+                // Calcula o fenótipo de cada variável de projeto a partir do genótipo.
+                int n_variaveis_projeto = 10;  
+                double function_min = -600.0;
+                double function_max = 600.0;
+                fenotipo = fenotipo_to_fx(new_genotipo, n_variaveis_projeto, function_min, function_max);
+                
+                // Calcula a f(x) a partir do fenótipo de cada variável de projeto
+                f_x = funcao_objetivo(fenotipo);
+                
+                // Inicializa a frequência relativa
+                freq_relativa = 0.0;
+            }
+        }
 
         private static Random random = new Random();
 
         private static int iteracoes = 0;
+        
             
-        public static List<bool> GeraIndividuoBool(int tamanho_genotipo){
-            List<bool> array = new List<bool>();
+        public static List<bool> GeraCromossomo(int tamanho_genotipo){
+            List<bool> cromossomo = new List<bool>();
             
             for (int i=0; i<tamanho_genotipo; ++i){
-                array.Add( (random.Next(0, 2)==1) ? true : false );
+                cromossomo.Add( (random.Next(0, 2)==1) ? true : false );
             }
 
-            return array;
+            return cromossomo;
         }
 
 
@@ -62,108 +86,216 @@ namespace SGA
         }
 
 
-        public static List<bool> SelecionaPai(List<List<bool>> populacao, List<double> fitnesses, double sum){
+        public static List<bool> SelecionaGenotipoPai(List<Individuo> populacao){
+            // Ordena a populacao pelo f(x)
+            populacao.Sort();
 
-            Console.WriteLine("================ SELECIONA PAI =======================");
-            List<double> local_fitness = new List<double>(fitnesses);
-            Console.WriteLine("local_fitness size: " + local_fitness.Count);
+            // // Mostra o menor resultado
+            // Console.WriteLine("Melhor resultado -> f(x) = " + populacao[0].f_x);
 
-            // Calcula a frequência relativa
-            for (int i = 0; i < local_fitness.Count; ++i){
-                Console.WriteLine("before normalize: " + i + ": " + local_fitness[i]);
-                
-                // Maior valor em módulo tem mais peso
-                local_fitness[i] = Math.Abs(local_fitness[i]) / sum;
+            // Cria a frequência relativa com pesos maiores para os primeiros
+            const double minimo_peso_do_rank = 0.0;
+            const double maximo_peso_do_rank = 5.0;
+
+            // Calcula o peso de cada indivíduo pelo ranking
+            List<double> valor_ranking = new List<double>();
+            double somatorio_peso_no_rank = 0.0;
+            int N = populacao.Count;
+            for(int i=0; i<N; i++){
+                double peso_no_rank = (N-i) * (maximo_peso_do_rank - minimo_peso_do_rank) / (N - 1) + minimo_peso_do_rank;
+                somatorio_peso_no_rank += peso_no_rank;
+                valor_ranking.Add(peso_no_rank);
             }
 
-            // Mostra a frequencia relativa
-            for (int i = 0; i < local_fitness.Count; ++i){
-                Console.WriteLine("freq.relativa " + i + ": " + local_fitness[i]);
+            // Transforma cada peso do ranking em frequência relativa de 0 a 1
+            List<double> freq_relativa = new List<double>();
+            for(int i=0; i<N; i++){
+                double freq_relativa_i = valor_ranking[i] / somatorio_peso_no_rank;
+                freq_relativa.Add(freq_relativa_i);
+                Console.WriteLine("freq_relativa_"+i+": " + freq_relativa_i);
             }
 
-            // Ordena os arrays
-            var fitnesses_array = local_fitness.ToArray();
-            var populacao_array = populacao.ToArray();
-            Array.Sort(fitnesses_array, populacao_array);
-
-            // Mostra o melhor resultado
-            Console.WriteLine("Melhor resultado -> f(x) = " + fitnesses_array[fitnesses_array.Length - 1]);
-
-            // Calcula o acumulado dos valores fitness normalizados
-            sum = 0.0;
+            // Calcula o acumulado da frequência relativa
+            double somatorio_frequencia_acumulada = 0.0;
             List<double> accumFitness = new List<double>();
-            for (int i=0; i<fitnesses_array.Length; ++i){
-                // Console.WriteLine("fitness array: " + i + ": " + fitnesses_array[i]);
-                sum += fitnesses_array[i]);
-                accumFitness.Add(sum);
-                Console.WriteLine("accumFitness: " + i + ": " + sum);
+            for (int i=0; i<freq_relativa.Count; ++i){
+                somatorio_frequencia_acumulada += freq_relativa[i];
+                accumFitness.Add(somatorio_frequencia_acumulada);
+                Console.WriteLine("accumFitness ORDENADA ACUMULADA: "+i+": " + somatorio_frequencia_acumulada);
             }
-            
+
             // Gera um valor aleatório para selecionar o pai
             var rand_selecao_pai = random.NextDouble();
             Console.WriteLine("Random = " + rand_selecao_pai);
             
-            // Seleciona o pai para retornar
-            // for (int i=0; i<accumFitness.Count; ++i){
-            //     Console.WriteLine(i + ": " + accumFitness[i]);
-            // }
+            // Seleciona o genótipo pai
+            List<bool> pai_selecionado = new List<bool>();
             for (int i=0; i<accumFitness.Count; ++i){
                 if (accumFitness[i] > rand_selecao_pai){
-                    List<bool> ret = (List<bool>) populacao_array[i];
-                    Console.WriteLine("NOVO PAI! Escolhendo pai: " + i);
-                    print_bool_array(populacao[i]);
-                    // return ret;
-                    return populacao_array[i];
+                    List<bool> genotipo = populacao[i].genotipo;
+                    Console.Write("NOVO PAI! Escolhendo pai "+i+": ");
+                    print_bool_array(genotipo);
+                    pai_selecionado = genotipo;
+                    break;
                 }
             }
+            if (pai_selecionado == null){
+                // "ERROR: Não encontrou um pai";
+                pai_selecionado = populacao[0].genotipo;
+                Console.WriteLine("ERROR: Não encontrou um pai!!");
+            }
             
-            // "ERROR: Não encontrou um pai";
-            Console.WriteLine("DEU PZUASSSSO!!!!!!!!!!!!!!!!!!! ");
-            return new List<bool>();
+
+            Console.Write("RETORNANDO PAI SELECIONADO: ");
+            print_bool_array(pai_selecionado);
+            return pai_selecionado;
+
+
+            /*
+            List<double> inverso = new List<double>(f_x);
+            List<double> freq_relativa = new List<double>(f_x);
+            Console.WriteLine("frequencia_relativa size: " + freq_relativa.Count);
+            Console.WriteLine("inverso size: " + freq_relativa.Count);
+
+            // Mostra os f(x)
+            for (int i=0; i<f_x_array.Length; ++i){
+                Console.WriteLine("f(x) " + i + ": " + f_x_array[i]);
+            }
+
+            // Calcula o inverso de cada e vai fazendo o somatório
+            double somatorio_inversos = 0.0;
+            for (int i=0; i<f_x_array.Length; ++i){
+                inverso[i] = 1 / f_x_array[i];
+                somatorio_inversos += inverso[i];
+                Console.WriteLine("inverso " + i + ": " + inverso[i]);
+            }
+            Console.WriteLine("SOMA TOTAL INVERSO: " + somatorio_inversos);
+
+            // Calcula a frequencia relativa
+            for (int i=0; i<inverso.Count; ++i){
+                freq_relativa[i] = inverso[i] / somatorio_inversos;
+                Console.WriteLine("freq.relativa " + i + ": " + freq_relativa[i]);
+            }
+
+            // Ordena com base na frequencia relativa
+            var freq_relativa_array = freq_relativa.ToArray();
+            Array.Sort(freq_relativa_array, populacao_array);
+
+            // Mostra o menor resultado
+            Console.WriteLine("Menor frequencia relativa = " + freq_relativa_array[0]);
+            */
+
+
+            /*
+            // fitness proportionate selection.
+
+            var fitArr = fitnesses.ToArray();
+            if (sum == 0.0)
+            {
+                foreach (var fit in fitnesses)
+                {
+                    sum += fit;
+                }
+            }
+
+            // normalize.
+            for (int i = 0; i < fitArr.Length; ++i)
+            {
+                fitArr[i] /= sum;
+            }
+
+            var popArr = population.ToArray();
+
+            Array.Sort(fitArr, popArr);
+
+            sum = 0.0;
+
+            var accumFitness = new double[fitArr.Length];
+
+            // calculate accumulated normalized fitness values.
+            for (int i = 0; i < accumFitness.Length; ++i)
+            {
+                sum += fitArr[i];
+                accumFitness[i] = sum;
+            }
+
+            var val = random.NextDouble();
+
+            for (int i = 0; i < accumFitness.Length; ++i)
+            {
+                if (accumFitness[i] > val)
+                {
+                    return popArr[i];
+                }
+            }
+            return "";
+            */
         }
 
 
         private static void print_bool_array(List<bool> boolarray){
-            string string_array = "";
-            
-            foreach(bool i in boolarray)
-                string_array += (i ? "1" : "0");
-            
-            Console.WriteLine(string_array);
-        }    
-        
+            foreach(bool bit in boolarray){
+                Console.Write( (bit ? "1" : "0") );
+            }
+            Console.WriteLine("");
+        } 
+       
 
-        private static double objective_function(double x){
-            double fitness = -Math.Pow(x,2) + 2;
-
+        private static double funcao_objetivo(List<double> fenotipo_variaveis_projeto){
             iteracoes++;
             Console.WriteLine("iteracoes: " + iteracoes);
-            
-            // n = size(x, 2);
-            
-            // double sumcomp = 0;
-            // double prodcomp = 1;
-            
-            // for(int i=1; i<n; i++){
-            //     sumcomp += (x(:, i) .^ 2);
-            //     prodcomp *= (cos(x(:, i) / sqrt(i)));
-            // }
-            
-            // scores = (sumcomp / 4000) - prodcomp + 1;
-            return fitness;
+
+            double laco_somatorio = 0;
+            double laco_produto = 1;
+
+            // Laço para os somatórios e pi
+            for(int i=0; i<fenotipo_variaveis_projeto.Count; i++){
+                laco_somatorio += Math.Pow(fenotipo_variaveis_projeto[i], 2) / 4000.0;
+                laco_produto *= Math.Cos(Math.PI * fenotipo_variaveis_projeto[i] / Math.Sqrt(i));
+                // laco_produto *= Math.Cos(fenotipo_variaveis_projeto[i] / Math.Sqrt(i));
+            }
+
+            // Expressão final de f(x)
+            double fx = (1 + laco_somatorio - laco_produto);
+
+            return fx;
         }
 
 
-        private static double listbool_to_double(List<bool> array){
-            double number = 0;
+        public static List<double> fenotipo_to_fx(List<bool> genotipo, int n_variaveis_projeto, double min, double max){
+            // Calcula o número de bits por variável de projeto
+            int bits_por_variavel_projeto = genotipo.Count / n_variaveis_projeto;
 
-            for(int i=0; i<array.Count; i++){
-                if (array[i]){
-                    number += (double)Math.Pow(2, (array.Count-1-i));
+            // Cria a lista que irá conter o fenótipo de cada variável de projeto
+            List<double> fenotipo = new List<double>();
+
+            for (int i=0; i<bits_por_variavel_projeto; i++){
+                string fenotipo_xi = "";
+                
+                // Percorre no genótipo o número de bits de cada variável de projeto
+                for(int c = n_variaveis_projeto*i; c < n_variaveis_projeto*(i+1); c++){
+                    // Se o bit for true, concatena "1", senão, "0"
+                    fenotipo_xi += (genotipo[c] ? "1" : "0");
                 }
+
+                // Converte os bits da variável de projeto ṕara decimal
+                int variavel_convertida = Convert.ToInt32(fenotipo_xi, 2);
+
+                // Mapeia o valor binário entre o intervalo mínimo e máximo
+                // 0 --------- min
+                // 2^bits ---- max
+                // binario --- x
+                // (max-min) / (2^bits - 0) ======> Variação de valor por bit
+                // min + [(max-min) / (2^bits - 0)] * binario
+                double fenotipo_variavel_projeto = min + ((max - min) * variavel_convertida / (Math.Pow(2, n_variaveis_projeto) - 1));
+
+                // Adiciona o fenótipo da variável na lista de fenótipos
+                fenotipo.Add(fenotipo_variavel_projeto);
+                Console.WriteLine("fenotipo x"+i+": " + fenotipo_variavel_projeto);
             }
 
-            return number;
+            // Retorna o fenótipo 
+            return fenotipo;
         }
 
 
@@ -171,99 +303,129 @@ namespace SGA
             double probabilidade_mutacao = 0.5;
             double probabilidade_crossover = 0.5;
             int tamanho_populacao = 10;
-            const int tamanho_genotipo = 10;
-            const int criterio_parada_nro_avaliacoes_funcao = 11;
-            int nro_geracoes_completas = 0;
-
-
-            // Geração da população
-            List<List<bool>> populacao = new List<List<bool>>();
-            for(int i=0; i<tamanho_populacao; i++){
-                populacao.Add(GeraIndividuoBool(tamanho_genotipo));
-            }
+            const int tamanho_genotipo = 100;
+            const int criterio_parada_nro_avaliacoes_funcao = 100; // Múltiplo da população????
             
+            int nro_geracoes_completas = 0;
+            List<Individuo> populacao = new List<Individuo>();
+            List<double> melhor_fx_geracoes = new List<double>();
 
+            // Gera a população inicial
+            for(int i=0; i<tamanho_populacao; i++){    
+                // Gera o individuo e adiciona ele na população
+                List<bool> cromossomo = GeraCromossomo(tamanho_genotipo);
+                Individuo new_individuo = new Individuo(cromossomo);
+                populacao.Add(new_individuo);
+                
+                // Apresenta a população
+                Console.Write(i + ": ");
+                print_bool_array(populacao[i].genotipo);
+            }   
+            Console.WriteLine("População gerada!");
+            
             // Loop de operações
             while (iteracoes < criterio_parada_nro_avaliacoes_funcao){
-                List<List<bool>> new_generation = new List<List<bool>>();
-
                 Console.WriteLine("----------------------------- NEW GENERATION ---------------------------------------");
                 nro_geracoes_completas++;
-            
-                // Apresenta a população
-                for(int i=0; i<tamanho_populacao; i++){
-                    Console.Write(i + ": ");
-                    print_bool_array(populacao[i]);
-                }
-                Console.WriteLine("População gerada!");
+                Console.WriteLine("Geração atual: " + nro_geracoes_completas);
                 
-                // Calcula o fitness (valor da funcao)
-                double sum = 0.0;
-                List<double> fitnesses = new List<double>();
-                for (int i=0; i<populacao.Count; i++){
-                    double x = listbool_to_double(populacao[i]);
-                    double value = objective_function(x);
-                    Console.WriteLine("x = " + x + "  |  f(x) = " + value);
-                    fitnesses.Add(value);
-                    sum += value;
+                Console.WriteLine("Tamanho da população: " + populacao.Count);
+                
+                // // Ordena a populacao com base no f(x)
+                // populacao.Sort();
+
+                // Apresenta a população
+                foreach(Individuo ind in populacao){
+                    Console.WriteLine("x = " + ind.fenotipo + "\t|  f(x) = " + ind.f_x);
                 }
-                Console.WriteLine("SOMA = " + sum);
-
-                // Enquanto a quantidade de filhos gerada for menor que n, gera filhos
+                
+                // Adiciona o menor f(x) na lista de melhores resultados
+                double melhor_fx = populacao[0].f_x;
+                melhor_fx_geracoes.Add(melhor_fx);
+                Console.WriteLine("======================> Melhor f(x) da geração "+nro_geracoes_completas+": "+melhor_fx);
+                
+                // Cria a nova geração de filhos
+                List<Individuo> new_generation = new List<Individuo>();
                 while(new_generation.Count < populacao.Count){
-                    // Seleciona 2 da população
-                    List<bool> pai1 = SelecionaPai(populacao, fitnesses, sum);
-                    List<bool> pai2 = SelecionaPai(populacao, fitnesses, sum);
-                    Console.Write("Pai1 criado: ");
-                    print_bool_array(pai1);
-                    Console.Write("Pai2 criado: ");
-                    print_bool_array(pai2);
-
-                    // Gera osCria os filhos
-                    List<bool> new1 = pai1;
-                    List<bool> new2 = pai2;
+                    // -------------------------------------------------------------
+                    // -------------------------- SELEÇÃO --------------------------
+                    // -------------------------------------------------------------
                     
-                    // Crossover
-                    if (random.NextDouble() < probabilidade_crossover){
-                        List<List<bool>> crossovers = CrossoverBool(pai1, pai2);
-                        
-                        new1 = crossovers[0];
-                        Console.Write("new1: ");
-                        print_bool_array(new1);
+                    // Seleciona o primeiro pai
+                    List<bool> cromossomo_pai1 = SelecionaGenotipoPai(populacao);
+                    Console.Write("cromossomo_pai1 criado: ");
+                    print_bool_array(cromossomo_pai1);
+                    
+                    // Seleciona o segundo pai
+                    List<bool> cromossomo_pai2 = SelecionaGenotipoPai(populacao);
+                    Console.Write("cromossomo_pai2 criado: ");
+                    print_bool_array(cromossomo_pai2);
 
-                        new2 = crossovers[1];
-                        Console.Write("new2: ");
-                        print_bool_array(new2);
+                    // Cria os 2 filhos cópias dos pais
+                    List<bool> cromossomo_filho1 = cromossomo_pai1;
+                    List<bool> cromossomo_filho2 = cromossomo_pai2;
+                    
+                    // -------------------------------------------------------------
+                    // ------------------------- CROSSOVER -------------------------
+                    // -------------------------------------------------------------
+                    
+                    // Realiza o crossover conforme a probabilidade
+                    if (random.NextDouble() < probabilidade_crossover){
+                        List<List<bool>> crossovers = CrossoverBool(cromossomo_pai1, cromossomo_pai2);
+                        
+                        cromossomo_filho1 = crossovers[0];
+                        Console.Write("cromossomo_filho1: ");
+                        print_bool_array(cromossomo_filho1);
+
+                        cromossomo_filho2 = crossovers[1];
+                        Console.Write("cromossomo_filho2: ");
+                        print_bool_array(cromossomo_filho2);
                     }
                     else{
                         Console.WriteLine("Sem Crossover!");
                     }
 
-                    // Mutação
-                    new1 = MutacaoBool(new1, probabilidade_mutacao);
-                    Console.Write("mutação do new1: ");
-                    print_bool_array(new1);
+                    // -------------------------------------------------------------
+                    // -------------------------- MUTAÇÃO --------------------------
+                    // -------------------------------------------------------------        
                     
-                    new2 = MutacaoBool(new2, probabilidade_mutacao);
-                    Console.Write("mutação do new2: ");
-                    print_bool_array(new2);
+                    // Mutação do filho 1
+                    cromossomo_filho1 = MutacaoBool(cromossomo_filho1, probabilidade_mutacao);
+                    Console.Write("mutação do cromossomo_filho1: ");
+                    print_bool_array(cromossomo_filho1);
+                    
+                    // Mutação do filho 2
+                    cromossomo_filho2 = MutacaoBool(cromossomo_filho2, probabilidade_mutacao);
+                    Console.Write("mutação do cromossomo_filho2: ");
+                    print_bool_array(cromossomo_filho2);
 
-                    new_generation.Add(new1);
-                    new_generation.Add(new2);
+                    // Cria os novos indivíduos e adiciona na população da nova geração
+                    Individuo filho1 = new Individuo(cromossomo_filho1);
+                    Individuo filho2 = new Individuo(cromossomo_filho2);
+                    new_generation.Add(filho1);
+                    new_generation.Add(filho2);
                 }
 
-
-                // Substitui a população pela nova
+                // Atualiza a população
                 populacao = new_generation;
+                Console.WriteLine("======================================================");
             }
 
             Console.WriteLine("======================================================");
             Console.WriteLine("======================================================");
-            Console.WriteLine("======================================================");
-            // Acabou as gerações, então vê a melhor resposta
-            // List<bool> melhor_resposta = choose_best_chromosome(populacao);
-
-            Console.WriteLine("Número de gerações completas: " + nro_geracoes_completas);
+            
+            // Apresenta os melhores resultados de cada geração
+            Console.WriteLine("Melhores Resultados das Gerações:");
+            double menor_fx_todos = melhor_fx_geracoes[0];
+            for(int i=0; i<melhor_fx_geracoes.Count; i++){
+                double best = melhor_fx_geracoes[i];
+                Console.WriteLine("Melhor na geração "+i+": "+best);
+                // Se esse melhor foi melhor que todos, atualiza o melhor de todos
+                if (best < menor_fx_todos){
+                    menor_fx_todos = best;
+                }
+            }
+            Console.WriteLine("Melhor f(x) de todas as gerações: " + menor_fx_todos);
         }
     }
 }
