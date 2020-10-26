@@ -34,7 +34,8 @@ namespace SGA
         private static Random random = new Random();
 
         private static int iteracoes = 0;
-        
+
+        public static bool DEBUG_CONSOLE = false;
             
         public static List<bool> GeraCromossomo(int tamanho_genotipo){
             List<bool> cromossomo = new List<bool>();
@@ -51,7 +52,8 @@ namespace SGA
             // Os cromossomos possuem tamanhos iguais, então obtém uma
             // ... posição entre 0 e o tamanho de um dos cromossomos.
             int pos = random.Next(0, individuo1.Count);
-            Console.WriteLine("Posição crossover: " + pos);
+            if(DEBUG_CONSOLE)
+                Console.WriteLine("Posição crossover: " + pos);
 
             // Cria as recombinações dos 2 novos indivíduos            
             List<bool> crossover1 = new List<bool>();
@@ -86,9 +88,6 @@ namespace SGA
 
 
         public static List<bool> SelecionaGenotipoPai(List<Individuo> populacao){
-            // Ordena a populacao pelo f(x)
-            populacao.Sort();
-
             // // Mostra o menor resultado
             // Console.WriteLine("Melhor resultado -> f(x) = " + populacao[0].f_x);
 
@@ -111,7 +110,8 @@ namespace SGA
             for(int i=0; i<N; i++){
                 double freq_relativa_i = valor_ranking[i] / somatorio_peso_no_rank;
                 freq_relativa.Add(freq_relativa_i);
-                Console.WriteLine("freq_relativa_"+i+": " + freq_relativa_i);
+                if(DEBUG_CONSOLE)
+                    Console.WriteLine("freq_relativa_"+i+": " + freq_relativa_i);
             }
 
             // Calcula o acumulado da frequência relativa
@@ -120,20 +120,24 @@ namespace SGA
             for (int i=0; i<freq_relativa.Count; ++i){
                 somatorio_frequencia_acumulada += freq_relativa[i];
                 accumFitness.Add(somatorio_frequencia_acumulada);
-                Console.WriteLine("accumFitness ORDENADA ACUMULADA: "+i+": " + somatorio_frequencia_acumulada);
+                if(DEBUG_CONSOLE)
+                    Console.WriteLine("accumFitness ORDENADA ACUMULADA: "+i+": " + somatorio_frequencia_acumulada);
             }
 
             // Gera um valor aleatório para selecionar o pai
             var rand_selecao_pai = random.NextDouble();
-            Console.WriteLine("Random = " + rand_selecao_pai);
+            if(DEBUG_CONSOLE)
+                Console.WriteLine("Random = " + rand_selecao_pai);
             
             // Seleciona o genótipo pai
             List<bool> pai_selecionado = new List<bool>();
             for (int i=0; i<accumFitness.Count; ++i){
                 if (accumFitness[i] > rand_selecao_pai){
                     List<bool> genotipo = populacao[i].genotipo;
-                    Console.Write("NOVO PAI! Escolhendo pai "+i+": ");
-                    print_bool_array(genotipo);
+                    if(DEBUG_CONSOLE){
+                        Console.Write("NOVO PAI! Escolhendo pai "+i+": ");
+                        print_bool_array(genotipo);
+                    }
                     pai_selecionado = genotipo;
                     break;
                 }
@@ -141,12 +145,14 @@ namespace SGA
             if (pai_selecionado == null){
                 // "ERROR: Não encontrou um pai";
                 pai_selecionado = populacao[0].genotipo;
-                Console.WriteLine("ERROR: Não encontrou um pai!!");
+                if(DEBUG_CONSOLE)
+                    Console.WriteLine("ERROR: Não encontrou um pai!!");
             }
             
-
-            Console.Write("RETORNANDO PAI SELECIONADO: ");
-            print_bool_array(pai_selecionado);
+            if(DEBUG_CONSOLE){
+                Console.Write("RETORNANDO PAI SELECIONADO: ");
+                print_bool_array(pai_selecionado);
+            }
             return pai_selecionado;
 
 
@@ -242,7 +248,8 @@ namespace SGA
 
         private static double funcao_objetivo(List<double> fenotipo_variaveis_projeto){
             iteracoes++;
-            Console.WriteLine("iteracoes: " + iteracoes);
+            if(DEBUG_CONSOLE)
+                Console.WriteLine("iteracoes: " + iteracoes);
 
             double laco_somatorio = 0;
             double laco_produto = 1;
@@ -298,14 +305,9 @@ namespace SGA
             return fenotipo;
         }
 
-
-        static void Main(string[] args){
-            double probabilidade_mutacao = 0.5;
-            double probabilidade_crossover = 0.5;
-            int tamanho_populacao = 10;
-            const int tamanho_genotipo = 100;
-            const int criterio_parada_nro_avaliacoes_funcao = 100; // Múltiplo da população????
-            
+    
+        public static List<double> Algoritmo_Genetico_Simples(double probabilidade_mutacao, double probabilidade_crossover, int tamanho_populacao, int tamanho_genotipo, int criterio_parada_nro_avaliacoes_funcao){
+        
             int nro_geracoes_completas = 0;
             List<Individuo> populacao = new List<Individuo>();
             List<double> melhor_fx_geracoes = new List<double>();
@@ -317,30 +319,30 @@ namespace SGA
                 Individuo new_individuo = new Individuo(cromossomo);
                 populacao.Add(new_individuo);
             }   
-            Console.WriteLine("População Inicial gerada!");
+            if(DEBUG_CONSOLE)
+                Console.WriteLine("População Inicial gerada!");
             
             // Loop de operações
             while (iteracoes < criterio_parada_nro_avaliacoes_funcao){
-                Console.WriteLine("----------------------------- NEW GENERATION ---------------------------------------");
+                // Atualiza o número total de gerações completas
                 nro_geracoes_completas++;
                 Console.WriteLine("Geração atual: " + nro_geracoes_completas);
                 
-                Console.WriteLine("Tamanho da população: " + populacao.Count);
-                
-                // // Ordena a populacao com base no f(x)
-                // populacao.Sort();
+                // Ordena a populacao com base no f(x)
+                populacao.Sort(delegate(Individuo ind1, Individuo ind2) { return ind1.f_x.CompareTo(ind2.f_x); });
 
                 // Apresenta a população
-                foreach(Individuo ind in populacao){
-                    Console.Write("Genotipo: ");
-                    print_bool_array(ind.genotipo);
-                    Console.WriteLine("f(x): " + ind.f_x);
+                if(DEBUG_CONSOLE){
+                    foreach(Individuo ind in populacao){
+                        Console.Write("Genotipo: ");
+                        print_bool_array(ind.genotipo);
+                        Console.WriteLine("f(x): " + ind.f_x);
+                    }   
                 }
                 
                 // Adiciona o menor f(x) na lista de melhores resultados
                 double melhor_fx = populacao[0].f_x;
                 melhor_fx_geracoes.Add(melhor_fx);
-                Console.WriteLine("======================> Melhor f(x) da geração "+nro_geracoes_completas+": "+melhor_fx);
                 
                 // Cria a nova geração de filhos
                 List<Individuo> new_generation = new List<Individuo>();
@@ -349,15 +351,15 @@ namespace SGA
                     // -------------------------- SELEÇÃO --------------------------
                     // -------------------------------------------------------------
                     
-                    // Seleciona o primeiro pai
                     List<bool> cromossomo_pai1 = SelecionaGenotipoPai(populacao);
-                    Console.Write("cromossomo_pai1 criado: ");
-                    print_bool_array(cromossomo_pai1);
-                    
-                    // Seleciona o segundo pai
                     List<bool> cromossomo_pai2 = SelecionaGenotipoPai(populacao);
-                    Console.Write("cromossomo_pai2 criado: ");
-                    print_bool_array(cromossomo_pai2);
+                    
+                    if(DEBUG_CONSOLE){
+                        Console.Write("cromossomo_pai1 criado: ");
+                        print_bool_array(cromossomo_pai1);
+                        Console.Write("cromossomo_pai2 criado: ");
+                        print_bool_array(cromossomo_pai2);
+                    }
 
                     // Cria os 2 filhos cópias dos pais
                     List<bool> cromossomo_filho1 = cromossomo_pai1;
@@ -368,34 +370,37 @@ namespace SGA
                     // -------------------------------------------------------------
                     
                     // Realiza o crossover conforme a probabilidade
-                    if (random.NextDouble() < probabilidade_crossover){
+                    if (random.NextDouble() > probabilidade_crossover){
                         List<List<bool>> crossovers = CrossoverBool(cromossomo_pai1, cromossomo_pai2);
                         
                         cromossomo_filho1 = crossovers[0];
-                        Console.Write("cromossomo_filho1: ");
-                        print_bool_array(cromossomo_filho1);
-
                         cromossomo_filho2 = crossovers[1];
-                        Console.Write("cromossomo_filho2: ");
-                        print_bool_array(cromossomo_filho2);
+                        
+                        if(DEBUG_CONSOLE){
+                            Console.Write("cromossomo_filho1: ");
+                            print_bool_array(cromossomo_filho1);
+                            Console.Write("cromossomo_filho2: ");
+                            print_bool_array(cromossomo_filho2);
+                        }
                     }
                     else{
-                        Console.WriteLine("Sem Crossover!");
+                        if(DEBUG_CONSOLE)
+                            Console.WriteLine("Sem Crossover!");
                     }
 
                     // -------------------------------------------------------------
                     // -------------------------- MUTAÇÃO --------------------------
                     // -------------------------------------------------------------        
                     
-                    // Mutação do filho 1
                     cromossomo_filho1 = MutacaoBool(cromossomo_filho1, probabilidade_mutacao);
-                    Console.Write("mutação do cromossomo_filho1: ");
-                    print_bool_array(cromossomo_filho1);
-                    
-                    // Mutação do filho 2
                     cromossomo_filho2 = MutacaoBool(cromossomo_filho2, probabilidade_mutacao);
-                    Console.Write("mutação do cromossomo_filho2: ");
-                    print_bool_array(cromossomo_filho2);
+
+                    if(DEBUG_CONSOLE){
+                        Console.Write("mutação do cromossomo_filho1: ");
+                        print_bool_array(cromossomo_filho1);
+                        Console.Write("mutação do cromossomo_filho2: ");
+                        print_bool_array(cromossomo_filho2);
+                    }
 
                     // Cria os novos indivíduos e adiciona na população da nova geração
                     Individuo filho1 = new Individuo(cromossomo_filho1);
@@ -406,24 +411,43 @@ namespace SGA
 
                 // Atualiza a população
                 populacao = new_generation;
-                Console.WriteLine("======================================================");
+                if(DEBUG_CONSOLE)
+                    Console.WriteLine("======================================================");
             }
 
-            Console.WriteLine("======================================================");
-            Console.WriteLine("======================================================");
+            if(DEBUG_CONSOLE)
+                Console.WriteLine("======================================================");
+            
             
             // Apresenta os melhores resultados de cada geração
             Console.WriteLine("Melhores Resultados das Gerações:");
             double menor_fx_todos = melhor_fx_geracoes[0];
             for(int i=0; i<melhor_fx_geracoes.Count; i++){
                 double best = melhor_fx_geracoes[i];
+                
                 Console.WriteLine("Melhor na geração "+i+": "+best);
+                
                 // Se esse melhor foi melhor que todos, atualiza o melhor de todos
                 if (best < menor_fx_todos){
                     menor_fx_todos = best;
                 }
             }
             Console.WriteLine("Melhor f(x) de todas as gerações: " + menor_fx_todos);
+
+            return melhor_fx_geracoes;
+        }
+
+        
+        static void Main(string[] args){
+            double probabilidade_mutacao = 0.05;
+            double probabilidade_crossover = 0.5;
+            int tamanho_populacao = 10;
+            const int tamanho_genotipo = 60;
+            const int criterio_parada_nro_avaliacoes_funcao = 10000; // Múltiplo da população????
+            
+            DEBUG_CONSOLE = false;
+            
+            List<double> melhor_fx_geracoes = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
         }
     }
 }
