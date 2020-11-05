@@ -24,9 +24,6 @@ namespace SGA
 
                 // Calcula a f(x) a partir do fenótipo de cada variável de projeto
                 f_x = funcao_objetivo(genotipo);
-                
-
-
                    
                 if (f_x < current_best_fx){
                     current_best_fx = f_x;
@@ -45,15 +42,22 @@ namespace SGA
                     melhores_NFOB.Add(current_best_fx);
                 }
 
-                // if(DEBUG_CONSOLE)
-                //     Console.WriteLine("avaliacoes_funcao_objetivo: " + avaliacoes_funcao_objetivo);
+                if(DEBUG_CONSOLE)   Console.WriteLine("avaliacoes_funcao_objetivo: " + avaliacoes_funcao_objetivo);
 
         
 
             }
         }
 
-            
+        
+        /*
+        Função para a geração de um cromossomo
+
+        - Parâmetros:
+            int: Tamanho do genótipo
+        - Retorno:
+            List<bool>: Lista contendo todos os bits gerados
+        */
         public static List<bool> GeraCromossomo(int tamanho_genotipo){
             List<bool> cromossomo = new List<bool>();
             
@@ -65,12 +69,20 @@ namespace SGA
         }
 
 
+        /*
+        Função para a realização do crossover de um ponto
+
+        - Parâmetros:
+            List<bool>: Cromossomo do pai 1
+            List<bool>: Cromossomo do pai 2
+        - Retorno:
+            List<List<bool>>: Lista contendo dois cromossomos filhos (List<bool>)
+        */
         private static List<List<bool>> CrossoverBool(List<bool> individuo1, List<bool> individuo2){
             // Os cromossomos possuem tamanhos iguais, então obtém uma
             // ... posição entre 0 e o tamanho de um dos cromossomos.
             int pos = random.Next(0, individuo1.Count);
-            if(DEBUG_CONSOLE)
-                Console.WriteLine("Posição crossover: " + pos);
+            if(DEBUG_CONSOLE)   Console.WriteLine("Posição crossover: " + pos);
 
             // Cria as recombinações dos 2 novos indivíduos            
             List<bool> crossover1 = new List<bool>();
@@ -91,6 +103,15 @@ namespace SGA
         }
 
 
+        /*
+        Função para a realização da mutação
+
+        - Parâmetros:
+            List<bool>: Cromossomo a ser mutado
+            double: probabilidade de mutação do cromossomo
+        - Retorno:
+            List<bool>: Cromossomo mutado
+        */
         private static List<bool> MutacaoBool(List<bool> cromossomo, double probabilidade_mutacao){
             for(int i=0; i<cromossomo.Count; i++){
                 if (random.NextDouble() < probabilidade_mutacao){
@@ -102,6 +123,15 @@ namespace SGA
         }
 
 
+        /*
+        Função para selecionar o cromossomo de um pai da população
+
+        - Parâmetros:
+            List<Individuo>: Lista contendo toda a população
+            double: probabilidade de mutação do cromossomo
+        - Retorno:
+            List<bool>: Cromossomo mutado
+        */
         public static List<bool> SelecionaGenotipoPai(List<Individuo> populacao){
             // // Mostra o menor resultado
             // Console.WriteLine("Melhor resultado -> f(x) = " + populacao[0].f_x);
@@ -125,8 +155,7 @@ namespace SGA
             for(int i=0; i<N; i++){
                 double freq_relativa_i = valor_ranking[i] / somatorio_peso_no_rank;
                 freq_relativa.Add(freq_relativa_i);
-                if(DEBUG_CONSOLE)
-                    Console.WriteLine("freq_relativa_"+i+": " + freq_relativa_i);
+                if(DEBUG_CONSOLE)   Console.WriteLine("freq_relativa_"+i+": " + freq_relativa_i);
             }
 
             // Calcula o acumulado da frequência relativa
@@ -135,14 +164,12 @@ namespace SGA
             for (int i=0; i<freq_relativa.Count; ++i){
                 somatorio_frequencia_acumulada += freq_relativa[i];
                 accumFitness.Add(somatorio_frequencia_acumulada);
-                if(DEBUG_CONSOLE)
-                    Console.WriteLine("accumFitness ORDENADA ACUMULADA: "+i+": " + somatorio_frequencia_acumulada);
+                if(DEBUG_CONSOLE)   Console.WriteLine("accumFitness ORDENADA ACUMULADA: "+i+": " + somatorio_frequencia_acumulada);
             }
 
             // Gera um valor aleatório para selecionar o pai
             var rand_selecao_pai = random.NextDouble();
-            if(DEBUG_CONSOLE)
-                Console.WriteLine("Random = " + rand_selecao_pai);
+            if(DEBUG_CONSOLE)   Console.WriteLine("Random = " + rand_selecao_pai);
             
             // Seleciona o genótipo pai
             List<bool> pai_selecionado = new List<bool>();
@@ -160,8 +187,7 @@ namespace SGA
             if (pai_selecionado == null){
                 // "ERROR: Não encontrou um pai";
                 pai_selecionado = populacao[0].genotipo;
-                if(DEBUG_CONSOLE)
-                    Console.WriteLine("ERROR: Não encontrou um pai!!");
+                if(DEBUG_CONSOLE)   Console.WriteLine("ERROR: Não encontrou um pai!!");
             }
             
             if(DEBUG_CONSOLE){
@@ -253,6 +279,9 @@ namespace SGA
         }
 
 
+        /*
+        Função para printar um cromossomo - DEBUG
+        */
         private static void print_bool_array(List<bool> boolarray){
             foreach(bool bit in boolarray){
                 Console.Write( (bit ? "1" : "0") );
@@ -261,6 +290,14 @@ namespace SGA
         } 
        
 
+        /*
+        Função Objetivo - fitness
+
+        - Parâmetros:
+            List<bool>: Cromossomo a ser calculado o valor da função objetivo
+        - Retorno:
+            double: Valor da função objetivo
+        */
         private static double funcao_objetivo(List<bool> genotipo){
             // Incrementa o número de avaliações da função objetivo
             avaliacoes_funcao_objetivo++;
@@ -269,34 +306,18 @@ namespace SGA
             const int n_variaveis_projeto = 10;  
             const double function_min = -600.0;
             const double function_max = 600.0;
-            List<double> fenotipo_variaveis_projeto = CalculaFenotipos(genotipo, n_variaveis_projeto, function_min, function_max);
+            
+            // ===================================================
+            // Calcula o fenótipo para cada variável de projeto
+            // ===================================================
 
-            // Calcula a função de Griewank
-            double laco_somatorio = 0;
-            double laco_produto = 1;
-
-            // Laço para os somatórios e pi
-            for(int i=0; i<fenotipo_variaveis_projeto.Count; i++){
-                laco_somatorio += Math.Pow(fenotipo_variaveis_projeto[i], 2);
-                // laco_produto *= Math.Cos( Math.PI * fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
-                laco_produto *= Math.Cos( fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
-            }
-
-            // Expressão final de f(x)
-            double fx = (1 + laco_somatorio/4000.0 - laco_produto);
-            // Console.WriteLine("f(x) calculada: " + fx);
-
-            return fx;
-        }
-
-
-        public static List<double> CalculaFenotipos(List<bool> genotipo, int n_variaveis_projeto, double min, double max){
             // Calcula o número de bits por variável de projeto
             int bits_por_variavel_projeto = genotipo.Count / n_variaveis_projeto;
 
             // Cria a lista que irá conter o fenótipo de cada variável de projeto
-            List<double> fenotipo = new List<double>();
-
+            List<double> fenotipo_variaveis_projeto = new List<double>();
+            
+            // Laço percorrendo cada bit do cromossomo
             for (int i=0; i<bits_por_variavel_projeto; i++){
                 string fenotipo_xi = "";
                 
@@ -315,25 +336,52 @@ namespace SGA
                 // binario --- x
                 // (max-min) / (2^bits - 0) ======> Variação de valor por bit
                 // min + [(max-min) / (2^bits - 0)] * binario
-                double fenotipo_variavel_projeto = min + ((max - min) * variavel_convertida / (Math.Pow(2, n_variaveis_projeto) - 1));
+                double fenotipo_variavel_projeto = function_min + ((function_max - function_min) * variavel_convertida / (Math.Pow(2, n_variaveis_projeto) - 1));
 
                 // Adiciona o fenótipo da variável na lista de fenótipos
-                fenotipo.Add(fenotipo_variavel_projeto);
+                fenotipo_variaveis_projeto.Add(fenotipo_variavel_projeto);
                 // Console.WriteLine("fenotipo x"+i+": " + fenotipo_variavel_projeto);
             }
 
-            // Retorna o fenótipo 
-            return fenotipo;
+            // ===================================================
+            // Calcula a função de Griewank
+            // ===================================================
+            
+            double laco_somatorio = 0;
+            double laco_produto = 1;
+
+            // Laço para os somatórios e pi
+            for(int i=0; i<fenotipo_variaveis_projeto.Count; i++){
+                laco_somatorio += Math.Pow(fenotipo_variaveis_projeto[i], 2);
+                // laco_produto *= Math.Cos( Math.PI * fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
+                laco_produto *= Math.Cos( fenotipo_variaveis_projeto[i] / Math.Sqrt(i+1) );
+            }
+
+            // Expressão final de f(x)
+            double fx = (1 + laco_somatorio/4000.0 - laco_produto);
+            // Console.WriteLine("f(x) calculada: " + fx);
+
+            return fx;
         }
 
-    
+
+        /*
+        Função principal para a execução do Algoritmo Genético Simples
+
+        - Parâmetros:
+            double: probabilidade de crossover
+            double: probabilidade de mutação
+            int: tamanho da população
+            int: tamanho do cromossomo
+            int: número de avaliações da FO para o critério de parada
+        - Retorno:
+            List<double> Resultados do melhor fitness em cada NFOB
+        */
         public static List<double> Algoritmo_Genetico_Simples(double probabilidade_mutacao, double probabilidade_crossover, int tamanho_populacao, int tamanho_genotipo, int criterio_parada_nro_avaliacoes_funcao){
-        
-            int nro_geracoes_completas = 0;
+            // Inicializa a população e alista com os melhores resultados
             List<Individuo> populacao = new List<Individuo>();
             List<double> melhor_fx_geracoes = new List<double>();
             
-
             // Gera a população inicial
             for(int i=0; i<tamanho_populacao; i++){    
                 // Gera o individuo e adiciona ele na população
@@ -341,15 +389,10 @@ namespace SGA
                 Individuo new_individuo = new Individuo(cromossomo);
                 populacao.Add(new_individuo);
             }   
-            if(DEBUG_CONSOLE)
-                Console.WriteLine("População Inicial gerada!");
+            if(DEBUG_CONSOLE)   Console.WriteLine("População Inicial gerada!");
             
-            // Loop de operações
+            // Executa o algoritmos até que o critério de parada seja atingido
             while (avaliacoes_funcao_objetivo < criterio_parada_nro_avaliacoes_funcao){
-                // Atualiza o número total de gerações completas
-                nro_geracoes_completas++;
-                // Console.WriteLine("Geração atual: " + nro_geracoes_completas);
-                
                 // Ordena a populacao com base no f(x)
                 populacao.Sort(delegate(Individuo ind1, Individuo ind2) { return ind1.f_x.CompareTo(ind2.f_x); });
 
@@ -365,20 +408,8 @@ namespace SGA
                 // Adiciona o menor f(x) na lista de melhores resultados
                 double melhor_fx = populacao[0].f_x;
                 melhor_fx_geracoes.Add(melhor_fx);
-
-
-
-
-
-
-              
-
-
-
-
-
-                
-                // Cria a nova geração de filhos
+      
+                // Cria a nova geração de filhos até que o número seja igual ao da população atual
                 List<Individuo> new_generation = new List<Individuo>();
                 while(new_generation.Count < populacao.Count){
                     // -------------------------------------------------------------
@@ -418,8 +449,7 @@ namespace SGA
                         }
                     }
                     else{
-                        if(DEBUG_CONSOLE)
-                            Console.WriteLine("Sem Crossover!");
+                        if(DEBUG_CONSOLE)   Console.WriteLine("Sem Crossover!");
                     }
 
                     // -------------------------------------------------------------
@@ -445,24 +475,16 @@ namespace SGA
 
                 // Atualiza a população
                 populacao = new_generation;
-                if(DEBUG_CONSOLE)
-                    Console.WriteLine("======================================================");
+                if(DEBUG_CONSOLE)   Console.WriteLine("======================================================");
             }
-
-            if(DEBUG_CONSOLE)
-                Console.WriteLine("======================================================");
-            
-            
+                        
             // Apresenta os melhores resultados de cada geração
             double menor_fx_todos = melhor_fx_geracoes[0];
-            if(DEBUG_CONSOLE){
-                Console.WriteLine("Melhores Resultados das Gerações:");
-                Console.WriteLine("Melhor f(x) de todas as gerações: " + menor_fx_todos);
-            }
+            if(DEBUG_CONSOLE)   Console.WriteLine("Melhor f(x) de todas as gerações: " + menor_fx_todos);
+            
             for(int i=0; i<melhor_fx_geracoes.Count; i++){
                 double best = melhor_fx_geracoes[i];
-                if(DEBUG_CONSOLE)
-                    Console.WriteLine("Melhor na geração "+i+": "+best);
+                if(DEBUG_CONSOLE)   Console.WriteLine("Melhor na geração "+i+": "+best);
                 
                 // Se esse melhor foi melhor que todos, atualiza o melhor de todos
                 if (best < menor_fx_todos){
@@ -470,82 +492,98 @@ namespace SGA
                 }
             }
 
+            // Retorna os melhores a cada NFOB
             return melhores_NFOB;
         }
 
         
+
+
         static void Main(string[] args){
-            double probabilidade_mutacao = 0.005;
-            double probabilidade_crossover = 0.2;
-            int tamanho_populacao = 120;
+            const double probabilidade_mutacao = 0.005;
+            const double probabilidade_crossover = 0.2;
+            const int tamanho_populacao = 120;
             const int tamanho_genotipo = 140;
             const int criterio_parada_nro_avaliacoes_funcao = 100000;
             DEBUG_CONSOLE = false;
             
+
             var total_watch = System.Diagnostics.Stopwatch.StartNew();
 
-            List<List<double>> todas_execucoes_SGA_NFOB = new List<List<double>>();
 
-            // // List<double> crossovers = new List<double>(){0.1, 0.2, 0.4, 0.6, 0.8, 1};
-            // // List<double> populacoes = new List<double>(){10, 20, 40, 80, 120, 160};
-            // List<double> mutacoes = new List<double>(){0.005, 0.01, 0.05, 0.1, 0.3, 0.5};
-            // foreach (double probabilidade_mutacao in mutacoes){
-                // Console.WriteLine("Probabilidade Crossover: " + probabilidade_crossover);
-                // Console.WriteLine("Tamanho Populacao: " + populacao);
-                // Console.WriteLine("Probabilidade Mutação: " + probabilidade_mutacao);
-                const int numero_execucoes = 50;
-                for(int i=0; i<numero_execucoes; i++){
-                    // // Começa a contar o tempo de execução
-                    // var watch = System.Diagnostics.Stopwatch.StartNew();
-                    
-                    // Executa o SGA
-                    List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
+            // Executa o SGA e recebe com retorno os NFOB
+            List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
 
-                    // Adiciona na lista de execuções a execução atual
-                    todas_execucoes_SGA_NFOB.Add(SGA_bests_NFOB);
-
-                    
-                    current_best_fx = 999999;
-                    melhores_NFOB = new List<double>();
-                    avaliacoes_funcao_objetivo = 0;
-                    
-                    // // Encerra o timer
-                    // watch.Stop();
-
-                    // Apresenta o melhor resultado
-                    // Console.WriteLine("Resultados:");
-                    // foreach (double result in SGA_bests_NFOB){
-                    //     Console.WriteLine(result);
-
-                    // }
-                    // Console.WriteLine("Execução " + i + ": " + SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
-                    // Console.WriteLine("Execução " + i + ": ");
-                    // Console.WriteLine(SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
-                    // Console.WriteLine("-----------------");
-                    // for(int j=0; j<SGA_bests_NFOB.Count; j++){
-                    //     Console.WriteLine(SGA_bests_NFOB[j]);
-                    // }
-                    // Console.WriteLine("-----------------");
-                    // Console.WriteLine("Tamanho melhores_NFOB: " + melhores_NFOB.Count);
-                    // Console.WriteLine("Tamanho SGA_bests_NFOB: " + SGA_bests_NFOB.Count);
-                    
-                    // Obtém o tempo de execução
-                    // var elapsedMs = watch.ElapsedMilliseconds;
-                    // Console.WriteLine("Tempo de execução: " + elapsedMs/1000.0 + " segundos");
-                }
-            // }
-
-            const int NFOBs = 25;
-            for(int NFOB=0; NFOB<NFOBs; NFOB++){
-                double sum = 0;
-                foreach(List<double> execution in todas_execucoes_SGA_NFOB){
-                    sum += execution[NFOB];
-                }
-                double media = sum / (double)todas_execucoes_SGA_NFOB.Count;
-                // Console.WriteLine("Soma do NFOB " + NFOB + ": " + sum);
-                // Console.WriteLine("Média do NFOB " + NFOB + ": " + media);
-                Console.WriteLine(media);
+            // Console.WriteLine("-----------------");
+            for(int j=0; j<SGA_bests_NFOB.Count; j++){
+                Console.WriteLine(SGA_bests_NFOB[j]);
             }
+            // Console.WriteLine("-----------------");
+
+
+
+            // List<List<double>> todas_execucoes_SGA_NFOB = new List<List<double>>();
+
+            // // // List<double> crossovers = new List<double>(){0.1, 0.2, 0.4, 0.6, 0.8, 1};
+            // // // List<double> populacoes = new List<double>(){10, 20, 40, 80, 120, 160};
+            // // List<double> mutacoes = new List<double>(){0.005, 0.01, 0.05, 0.1, 0.3, 0.5};
+            // // foreach (double probabilidade_mutacao in mutacoes){
+            //     // Console.WriteLine("Probabilidade Crossover: " + probabilidade_crossover);
+            //     // Console.WriteLine("Tamanho Populacao: " + populacao);
+            //     // Console.WriteLine("Probabilidade Mutação: " + probabilidade_mutacao);
+            //     const int numero_execucoes = 50;
+            //     for(int i=0; i<numero_execucoes; i++){
+            //         // // Começa a contar o tempo de execução
+            //         // var watch = System.Diagnostics.Stopwatch.StartNew();
+                    
+            //         // Executa o SGA
+            //         List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
+
+            //         // Adiciona na lista de execuções a execução atual
+            //         todas_execucoes_SGA_NFOB.Add(SGA_bests_NFOB);
+
+                    
+            //         current_best_fx = 999999;
+            //         melhores_NFOB = new List<double>();
+            //         avaliacoes_funcao_objetivo = 0;
+                    
+            //         // // Encerra o timer
+            //         // watch.Stop();
+
+            //         // Apresenta o melhor resultado
+            //         // Console.WriteLine("Resultados:");
+            //         // foreach (double result in SGA_bests_NFOB){
+            //         //     Console.WriteLine(result);
+
+            //         // }
+            //         // Console.WriteLine("Execução " + i + ": " + SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
+            //         // Console.WriteLine("Execução " + i + ": ");
+            //         // Console.WriteLine(SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
+            //         // Console.WriteLine("-----------------");
+            //         // for(int j=0; j<SGA_bests_NFOB.Count; j++){
+            //         //     Console.WriteLine(SGA_bests_NFOB[j]);
+            //         // }
+            //         // Console.WriteLine("-----------------");
+            //         // Console.WriteLine("Tamanho melhores_NFOB: " + melhores_NFOB.Count);
+            //         // Console.WriteLine("Tamanho SGA_bests_NFOB: " + SGA_bests_NFOB.Count);
+                    
+            //         // Obtém o tempo de execução
+            //         // var elapsedMs = watch.ElapsedMilliseconds;
+            //         // Console.WriteLine("Tempo de execução: " + elapsedMs/1000.0 + " segundos");
+            //     }
+            // // }
+
+            // const int NFOBs = 25;
+            // for(int NFOB=0; NFOB<NFOBs; NFOB++){
+            //     double sum = 0;
+            //     foreach(List<double> execution in todas_execucoes_SGA_NFOB){
+            //         sum += execution[NFOB];
+            //     }
+            //     double media = sum / (double)todas_execucoes_SGA_NFOB.Count;
+            //     // Console.WriteLine("Soma do NFOB " + NFOB + ": " + sum);
+            //     // Console.WriteLine("Média do NFOB " + NFOB + ": " + media);
+            //     Console.WriteLine(media);
+            // }
 
             total_watch.Stop();
 
