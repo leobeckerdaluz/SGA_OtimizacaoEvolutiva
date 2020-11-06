@@ -7,14 +7,23 @@ namespace SGA
 {
     public class SGA
     {
+        // Inicializa as variáveis globais estáticas
+        private static Random random = new Random();
         private static double current_best_fx = 999999;
         private static List<double> melhores_NFOB = new List<double>();
-        private static Random random = new Random();
-        private static int avaliacoes_funcao_objetivo = 0;
+        private static int NFOB = 0;
         private static bool DEBUG_CONSOLE = false;
 
         
-        public class Individuo{  
+        /*
+        Classe Indivíduo - Sempre que um indivíduo é criado, ele possui esses atributos 
+        ... e sua inicialização conta com o cálculo da FO e a verificação do NFOB
+
+        - Parâmetros do construtor:
+            List<bool>: Genótipo é uma lista de bits
+        */
+        public class Individuo{ 
+            //  
             public List<bool> genotipo { get; set; }  
             public double f_x { get; set; }  
             
@@ -24,12 +33,13 @@ namespace SGA
 
                 // Calcula a f(x) a partir do fenótipo de cada variável de projeto
                 f_x = funcao_objetivo(genotipo);
+                // Incrementa o número de avaliações da função objetivo
+                NFOB++;
                    
                 if (f_x < current_best_fx){
                     current_best_fx = f_x;
                 }
 
-                int NFOB = avaliacoes_funcao_objetivo;
                 //List<int> NFOB = new List<int>(){250,500,750,1000,1500,2000,3000,4000,5000,6000,7000,8000,9000,10000,15000,20000,25000,30000,40000,50000,60000,70000,80000,90000,100000}
 
                 if (NFOB == 250 || NFOB == 500 || NFOB == 750 || NFOB == 1000 || NFOB == 1500 || 
@@ -38,14 +48,10 @@ namespace SGA
                     NFOB == 20000 || NFOB == 25000 || NFOB == 30000 || NFOB == 40000 || NFOB == 50000 || 
                     NFOB == 60000 || NFOB == 70000 || NFOB == 80000 || NFOB == 90000 || NFOB == 100000)
                 {
-                    // Console.WriteLine("===========> BEST f(x) da iteracao "+NFOB+": "+current_best_fx);
                     melhores_NFOB.Add(current_best_fx);
                 }
 
-                if(DEBUG_CONSOLE)   Console.WriteLine("avaliacoes_funcao_objetivo: " + avaliacoes_funcao_objetivo);
-
-        
-
+                if(DEBUG_CONSOLE)   Console.WriteLine("NFOB: " + NFOB);
             }
         }
 
@@ -299,9 +305,6 @@ namespace SGA
             double: Valor da função objetivo
         */
         private static double funcao_objetivo(List<bool> genotipo){
-            // Incrementa o número de avaliações da função objetivo
-            avaliacoes_funcao_objetivo++;
-
             // Calcula o fenótipo de cada variável de projeto a partir do genótipo.
             const int n_variaveis_projeto = 10;  
             const double function_min = -600.0;
@@ -317,20 +320,20 @@ namespace SGA
             // Cria a lista que irá conter o fenótipo de cada variável de projeto
             List<double> fenotipo_variaveis_projeto = new List<double>();
             
-            // Laço percorrendo cada bit do cromossomo
+            // Transforma o genótipo de cada variável em uma string para depois converter para decimal
             for (int i=0; i<bits_por_variavel_projeto; i++){
                 string fenotipo_xi = "";
                 
-                // Percorre no genótipo o número de bits de cada variável de projeto
+                // Percorre o número de bits de cada variável de projeto
                 for(int c = n_variaveis_projeto*i; c < n_variaveis_projeto*(i+1); c++){
                     // Se o bit for true, concatena "1", senão, "0"
                     fenotipo_xi += (genotipo[c] ? "1" : "0");
                 }
 
-                // Converte os bits da variável de projeto ṕara decimal
+                // Converte essa string de bits para inteiro
                 int variavel_convertida = Convert.ToInt32(fenotipo_xi, 2);
 
-                // Mapeia o valor binário entre o intervalo mínimo e máximo
+                // Mapeia o inteiro entre o intervalo mínimo e máximo
                 // 0 --------- min
                 // 2^bits ---- max
                 // binario --- x
@@ -359,8 +362,7 @@ namespace SGA
 
             // Expressão final de f(x)
             double fx = (1 + laco_somatorio/4000.0 - laco_produto);
-            // Console.WriteLine("f(x) calculada: " + fx);
-
+            
             return fx;
         }
 
@@ -392,7 +394,7 @@ namespace SGA
             if(DEBUG_CONSOLE)   Console.WriteLine("População Inicial gerada!");
             
             // Executa o algoritmos até que o critério de parada seja atingido
-            while (avaliacoes_funcao_objetivo < criterio_parada_nro_avaliacoes_funcao){
+            while (NFOB < criterio_parada_nro_avaliacoes_funcao){
                 // Ordena a populacao com base no f(x)
                 populacao.Sort(delegate(Individuo ind1, Individuo ind2) { return ind1.f_x.CompareTo(ind2.f_x); });
 
@@ -498,8 +500,11 @@ namespace SGA
 
         
 
-
+        /*
+        Main
+        */
         static void Main(string[] args){
+            // Define os parâmetros do SGA e de apresentação
             const double probabilidade_mutacao = 0.005;
             const double probabilidade_crossover = 0.2;
             const int tamanho_populacao = 120;
@@ -507,18 +512,26 @@ namespace SGA
             const int criterio_parada_nro_avaliacoes_funcao = 100000;
             DEBUG_CONSOLE = false;
             
-
+            // Inicializa o temporizador
             var total_watch = System.Diagnostics.Stopwatch.StartNew();
-
 
             // Executa o SGA e recebe com retorno os NFOB
             List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
 
+            // // Apresenta os resultados
             // Console.WriteLine("-----------------");
-            for(int j=0; j<SGA_bests_NFOB.Count; j++){
-                Console.WriteLine(SGA_bests_NFOB[j]);
-            }
+            // for(int j=0; j<SGA_bests_NFOB.Count; j++){
+            //     Console.WriteLine(SGA_bests_NFOB[j]);
+            // }
             // Console.WriteLine("-----------------");
+
+            // Para o temporizados
+            total_watch.Stop();
+
+            // Calcula o tempo de execução
+            var elapsedMs = total_watch.ElapsedMilliseconds;
+            Console.WriteLine("Tempo total de execução: " + elapsedMs/1000.0 + " segundos");
+
 
 
 
@@ -545,7 +558,7 @@ namespace SGA
                     
             //         current_best_fx = 999999;
             //         melhores_NFOB = new List<double>();
-            //         avaliacoes_funcao_objetivo = 0;
+            //         NFOB = 0;
                     
             //         // // Encerra o timer
             //         // watch.Stop();
@@ -584,11 +597,6 @@ namespace SGA
             //     // Console.WriteLine("Média do NFOB " + NFOB + ": " + media);
             //     Console.WriteLine(media);
             // }
-
-            total_watch.Stop();
-
-            var elapsedMs = total_watch.ElapsedMilliseconds;
-            Console.WriteLine("Tempo total de execução: " + elapsedMs/1000.0 + " segundos");
         }
     }
 }
