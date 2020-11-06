@@ -12,61 +12,75 @@ namespace SGA
         private static bool DEBUG_CONSOLE = false;
 
         
+
         /*
-        Função para a geração de um cromossomo
+        Geração de Cromossomo
+            - Essa função recebe como parâmetro o tamanho do cromossomo e gera 
+            ... uma lista de booleanos representando o cromossomo.
 
         - Parâmetros:
-            int: Tamanho do genótipo
+            int: Tamanho do cromossomo
         - Retorno:
             List<bool>: Lista contendo todos os bits gerados
         */
-        public static List<bool> GeraCromossomo(int tamanho_genotipo){
+        public static List<bool> GeraCromossomo(int tamanho_cromossomo){
+            // Inicializa o cromossomo como uma lista
             List<bool> cromossomo = new List<bool>();
             
-            for (int i=0; i<tamanho_genotipo; ++i){
+            // Gera mu bit para cada posição do cromossomo
+            for (int i=0; i<tamanho_cromossomo; ++i){
                 cromossomo.Add( (random.Next(0, 2)==1) ? true : false );
             }
 
+            // Retorna o cromossomo criado
             return cromossomo;
         }
 
 
+
         /*
-        Função para a realização do crossover de um ponto
+        Operação de Crossover
+            - Essa função recebe como parâmetro os dois pais e realiza
+            ... o crossover de um ponto, gerando dois filhos.
 
         - Parâmetros:
             List<bool>: Cromossomo do pai 1
             List<bool>: Cromossomo do pai 2
         - Retorno:
-            List<List<bool>>: Lista contendo dois cromossomos filhos (List<bool>)
+            List<List<bool>>: Lista contendo os dois cromossomos filhos gerados
         */
         private static List<List<bool>> CrossoverBool(List<bool> individuo1, List<bool> individuo2){
             // Os cromossomos possuem tamanhos iguais, então obtém uma
             // ... posição entre 0 e o tamanho de um dos cromossomos.
-            int pos = random.Next(0, individuo1.Count);
-            if(DEBUG_CONSOLE)   Console.WriteLine("Posição crossover: " + pos);
+            int posicao_crossover = random.Next(0, individuo1.Count);
+            if(DEBUG_CONSOLE)   Console.WriteLine("Posição crossover: " + posicao_crossover);
 
             // Cria as recombinações dos 2 novos indivíduos            
-            List<bool> crossover1 = new List<bool>();
-            List<bool> crossover2 = new List<bool>();
+            List<bool> novo_cromossomo1 = new List<bool>();
+            List<bool> novo_cromossomo2 = new List<bool>();
+
+            // Cria os filhos com partes dos pais
             for(int i=0; i<individuo1.Count; i++){
-                if(i <= pos){
-                    crossover1.Add(individuo1[i]);
-                    crossover2.Add(individuo2[i]);
+                if(i <= posicao_crossover){
+                    novo_cromossomo1.Add(individuo1[i]);
+                    novo_cromossomo2.Add(individuo2[i]);
                 }
                 else{
-                    crossover1.Add(individuo2[i]);
-                    crossover2.Add(individuo1[i]);
+                    novo_cromossomo1.Add(individuo2[i]);
+                    novo_cromossomo2.Add(individuo1[i]);
                 }
             }
 
             // Retorna os dois novos indivíduos
-            return new List<List<bool>>(){crossover1, crossover2};
+            return new List<List<bool>>(){novo_cromossomo1, novo_cromossomo2};
         }
 
 
+
         /*
-        Função para a realização da mutação
+        Operacao de Mutação
+            - Essa função recebe como parâmetro o cromossomo e a probabilidade de mutação
+            ... e realiza a mutação de um bit com determinada probabilidade.
 
         - Parâmetros:
             List<bool>: Cromossomo a ser mutado
@@ -75,20 +89,64 @@ namespace SGA
             List<bool>: Cromossomo mutado
         */
         private static List<bool> MutacaoBool(List<bool> cromossomo, double probabilidade_mutacao){
+            // Percorre o cromossomo e muta cada bit com determinada probabilidade
             for(int i=0; i<cromossomo.Count; i++){
                 if (random.NextDouble() < probabilidade_mutacao){
                     cromossomo[i] = !(cromossomo[i]);
                 }
             }
 
+            // Retorna o cromossomo mutado
             return cromossomo;
         }
 
 
-        /*
-        Função para calcular a frequência acumulada de uma população.
-        - A geração é realizada através do método ranking
 
+        /*
+        Operação de Seleção de pai
+            - Essa função recebe como parâmetro a população e a frequência acumulada dela
+            ... e seleciona com certa probabilidade um cromossomo.
+            
+        - Parâmetros:
+            List<Individuo>: Lista contendo toda a população
+            double: probabilidade de mutação do cromossomo
+        - Retorno:
+            List<bool>: Cromossomo mutado
+        */
+        public static List<bool> SelecionaGenotipoPai(List<List<bool>> populacao, List<double> freq_acumulada){  
+            // Gera um valor aleatório para selecionar o pai
+            var rand_selecao_pai = random.NextDouble();
+            if(DEBUG_CONSOLE)   Console.WriteLine("Random para seleção de pai: " + rand_selecao_pai);
+            
+            // Seleciona o genótipo pai
+            List<bool> pai_selecionado = new List<bool>();
+            for (int i=0; i<freq_acumulada.Count; ++i){
+                if (freq_acumulada[i] > rand_selecao_pai){
+                    pai_selecionado = populacao[i];
+
+                    if(DEBUG_CONSOLE){
+                        Console.Write("NOVO PAI! Escolhendo pai "+i+": ");
+                        print_bool_array(pai_selecionado);
+                    }
+                    
+                    // Retorna o pai selecionado
+                    return pai_selecionado;
+                }
+            }
+
+            // Teoricamente, essa parte do código nunca será atingida, pois já retornou antes
+            // "ERROR: Não encontrou um pai";
+            Console.Write("Não encontrou um pai! Retornando o primeiro!");
+            return populacao[0];
+        }
+
+
+        
+        /*
+        Cálculo da Frequência acumulada da população
+            - Essa função recebe como parâmetro o tamanho da população e gera a frequência acumulada
+            ... de cada indivíduo. Essa frequência é utilizada na hora da seleção de um pai.
+            
         - Parâmetros:
             int: tamanho da população
         - Retorno:
@@ -133,133 +191,6 @@ namespace SGA
 
 
         /*
-        Função para selecionar o cromossomo de um pai da população
-
-        - Parâmetros:
-            List<Individuo>: Lista contendo toda a população
-            double: probabilidade de mutação do cromossomo
-        - Retorno:
-            List<bool>: Cromossomo mutado
-        */
-        public static List<bool> SelecionaGenotipoPai(List<List<bool>> populacao, List<double> freq_acumulada){
-        
-            // Gera um valor aleatório para selecionar o pai
-            var rand_selecao_pai = random.NextDouble();
-            if(DEBUG_CONSOLE)   Console.WriteLine("Random = " + rand_selecao_pai);
-            
-            // Seleciona o genótipo pai
-            List<bool> pai_selecionado = new List<bool>();
-            for (int i=0; i<freq_acumulada.Count; ++i){
-                if (freq_acumulada[i] > rand_selecao_pai){
-                    List<bool> genotipo_selecionado = populacao[i];
-                    if(DEBUG_CONSOLE){
-                        Console.Write("NOVO PAI! Escolhendo pai "+i+": ");
-                        print_bool_array(genotipo_selecionado);
-                    }
-                    pai_selecionado = genotipo_selecionado;
-                    break;
-                }
-            }
-
-            // Se o pai selecionado é nulo, significa que deu erro no retorno
-            if (pai_selecionado == null){
-                // "ERROR: Não encontrou um pai";
-                pai_selecionado = populacao[0];
-                if(DEBUG_CONSOLE)   Console.WriteLine("ERROR: Não encontrou um pai!!");
-            }
-            
-            if(DEBUG_CONSOLE){
-                Console.Write("RETORNANDO PAI SELECIONADO: ");
-                print_bool_array(pai_selecionado);
-            }
-
-            // Retorna o pai selecionado
-            return pai_selecionado;
-
-
-            /*
-            List<double> inverso = new List<double>(f_x);
-            List<double> freq_relativa = new List<double>(f_x);
-            Console.WriteLine("frequencia_relativa size: " + freq_relativa.Count);
-            Console.WriteLine("inverso size: " + freq_relativa.Count);
-
-            // Mostra os f(x)
-            for (int i=0; i<f_x_array.Length; ++i){
-                Console.WriteLine("f(x) " + i + ": " + f_x_array[i]);
-            }
-
-            // Calcula o inverso de cada e vai fazendo o somatório
-            double somatorio_inversos = 0.0;
-            for (int i=0; i<f_x_array.Length; ++i){
-                inverso[i] = 1 / f_x_array[i];
-                somatorio_inversos += inverso[i];
-                Console.WriteLine("inverso " + i + ": " + inverso[i]);
-            }
-            Console.WriteLine("SOMA TOTAL INVERSO: " + somatorio_inversos);
-
-            // Calcula a frequencia relativa
-            for (int i=0; i<inverso.Count; ++i){
-                freq_relativa[i] = inverso[i] / somatorio_inversos;
-                Console.WriteLine("freq.relativa " + i + ": " + freq_relativa[i]);
-            }
-
-            // Ordena com base na frequencia relativa
-            var freq_relativa_array = freq_relativa.ToArray();
-            Array.Sort(freq_relativa_array, populacao_array);
-
-            // Mostra o menor resultado
-            Console.WriteLine("Menor frequencia relativa = " + freq_relativa_array[0]);
-            */
-
-
-            /*
-            // fitness proportionate selection.
-
-            var fitArr = fitnesses.ToArray();
-            if (sum == 0.0)
-            {
-                foreach (var fit in fitnesses)
-                {
-                    sum += fit;
-                }
-            }
-
-            // normalize.
-            for (int i = 0; i < fitArr.Length; ++i)
-            {
-                fitArr[i] /= sum;
-            }
-
-            var popArr = population.ToArray();
-
-            Array.Sort(fitArr, popArr);
-
-            sum = 0.0;
-
-            var accumFitness = new double[fitArr.Length];
-
-            // calculate accumulated normalized fitness values.
-            for (int i = 0; i < accumFitness.Length; ++i)
-            {
-                sum += fitArr[i];
-                accumFitness[i] = sum;
-            }
-
-            var val = random.NextDouble();
-
-            for (int i = 0; i < accumFitness.Length; ++i)
-            {
-                if (accumFitness[i] > val)
-                {
-                    return popArr[i];
-                }
-            }
-            return "";
-            */
-        }
-
-
-        /*
         Função para printar um cromossomo - DEBUG
         */
         private static void print_bool_array(List<bool> boolarray){
@@ -270,15 +201,19 @@ namespace SGA
         } 
        
 
+
         /*
-        Função Objetivo - fitness
+        Função Objetivo 
+            - Essa função é a função fitness do algoritmo. Ela recebe como parâmetro o 
+            ... cromossomo, calcula o fenótipo de cada variável de projeto e calcula o 
+            ... valor da função objetivo.
 
         - Parâmetros:
             List<bool>: Cromossomo a ser calculado o valor da função objetivo
         - Retorno:
             double: Valor da função objetivo
         */
-        private static double funcao_objetivo(List<bool> genotipo){
+        private static double funcao_objetivo(List<bool> cromossomo){
             // Calcula o fenótipo de cada variável de projeto a partir do genótipo.
             const int n_variaveis_projeto = 10;  
             const double function_min = -600.0;
@@ -289,25 +224,26 @@ namespace SGA
             // ===================================================
 
             // Calcula o número de bits por variável de projeto
-            int bits_por_variavel_projeto = genotipo.Count / n_variaveis_projeto;
+            int bits_por_variavel_projeto = cromossomo.Count / n_variaveis_projeto;
 
             // Cria a lista que irá conter o fenótipo de cada variável de projeto
             List<double> fenotipo_variaveis_projeto = new List<double>();
             
             // Transforma o genótipo de cada variável em uma string para depois converter para decimal
             for (int i=0; i<bits_por_variavel_projeto; i++){
+                // Cria string representando os bits da variável
                 string fenotipo_xi = "";
                 
                 // Percorre o número de bits de cada variável de projeto
                 for(int c = n_variaveis_projeto*i; c < n_variaveis_projeto*(i+1); c++){
                     // Se o bit for true, concatena "1", senão, "0"
-                    fenotipo_xi += (genotipo[c] ? "1" : "0");
+                    fenotipo_xi += (cromossomo[c] ? "1" : "0");
                 }
 
                 // Converte essa string de bits para inteiro
                 int variavel_convertida = Convert.ToInt32(fenotipo_xi, 2);
 
-                // Mapeia o inteiro entre o intervalo mínimo e máximo
+                // Mapeia o inteiro entre o intervalo mínimo e máximo da função
                 // 0 --------- min
                 // 2^bits ---- max
                 // binario --- x
@@ -341,8 +277,13 @@ namespace SGA
         }
 
 
+
         /*
-        Função principal para a execução do Algoritmo Genético Simples
+        Função Principal - Algoritmo Genético Simples
+            - Essa função é a função principal para a execução do algoritmo. Aqui está contida grande 
+            ... parte da lógica do algoritmo. Ela recebe como parâmetro as probabilidades, bem como os 
+            ... tamanhos de população, cromossomos e o critério de parada (número de avaliações da FO).
+            O algoritmo irá armazenar o valor da FO para cada NFOB desejado e retornará isso ao final.
 
         - Parâmetros:
             double: probabilidade de crossover
@@ -350,13 +291,12 @@ namespace SGA
             int: tamanho da população
             int: tamanho do cromossomo
             int: número de avaliações da FO para o critério de parada
+            List<int>: lista contendo todos os pontos NFOBs desejados
         - Retorno:
             List<double> Resultados do melhor fitness em cada NFOB
         */
-        public static List<double> Algoritmo_Genetico_Simples(double probabilidade_mutacao, double probabilidade_crossover, int tamanho_populacao, int tamanho_genotipo, int criterio_parada_nro_avaliacoes_funcao){
-            // Inicializa a população e alista com os melhores resultados
-            List<List<bool>> populacao = new List<List<bool>>();
-
+        public static List<double> Algoritmo_Genetico_Simples(double probabilidade_mutacao, double probabilidade_crossover, int tamanho_populacao, int tamanho_genotipo, int criterio_parada_nro_avaliacoes_funcao, List<int> NFOBs){
+            // Inicializa algumas variáveis de controle do algoritmo
             double current_best_fx = 999999;
             List<double> melhores_NFOB = new List<double>();
             int NFOB = 0;
@@ -365,8 +305,9 @@ namespace SGA
             // Geração da População Inicial
             // ========================================
             
+            List<List<bool>> populacao = new List<List<bool>>();
             for(int i=0; i<tamanho_populacao; i++){    
-                // Gera o individuo e adiciona ele na população
+                // Gera um cromossomo e adiciona ele na população
                 List<bool> cromossomo = GeraCromossomo(tamanho_genotipo);
                 populacao.Add(cromossomo);
             }   
@@ -383,64 +324,53 @@ namespace SGA
                 // Calcula o fitness
                 // ========================================
 
-                List<double> fx = new List<double>();
+                List<double> fxs = new List<double>();
                 foreach (List<bool> cromossomo in populacao){
                     // Calcula a f(x) a partir do fenótipo de cada variável de projeto
-                    double f_x = funcao_objetivo(cromossomo);
+                    double fx = funcao_objetivo(cromossomo);
                     
-                    fx.Add(f_x);
+                    // Adiciona o valor da FO na lista de resultados da FO
+                    fxs.Add(fx);
                     
                     // Incrementa o número de avaliações da função objetivo
                     NFOB++;
+                    if(DEBUG_CONSOLE)   Console.WriteLine("NFOB: " + NFOB);
                     
-                    if (f_x < current_best_fx){
-                        current_best_fx = f_x;
-                    }
-
-                    //List<int> NFOB = new List<int>(){250,500,750,1000,1500,2000,3000,4000,5000,6000,7000,8000,9000,10000,15000,20000,25000,30000,40000,50000,60000,70000,80000,90000,100000}
-
-                    if (NFOB == 250 || NFOB == 500 || NFOB == 750 || NFOB == 1000 || NFOB == 1500 || 
-                        NFOB == 2000 || NFOB == 3000 || NFOB == 4000 || NFOB == 5000 || NFOB == 6000 || 
-                        NFOB == 7000 || NFOB == 8000 || NFOB == 9000 || NFOB == 10000 || NFOB == 15000 || 
-                        NFOB == 20000 || NFOB == 25000 || NFOB == 30000 || NFOB == 40000 || NFOB == 50000 || 
-                        NFOB == 60000 || NFOB == 70000 || NFOB == 80000 || NFOB == 90000 || NFOB == 100000)
-                    {
+                    // Se o valor da FO for o menor de todos, armazena esse melhor
+                    current_best_fx = (fx < current_best_fx) ? fx : current_best_fx;
+                        
+                    // Se o número de avaliações da FO for algum dos NFOBs desejados, armazena o 
+                    // ... melhor resultado da FO até aqui
+                    if ( NFOBs.Contains(NFOB) ){
                         melhores_NFOB.Add(current_best_fx);
                     }
-
-                    if(DEBUG_CONSOLE)   Console.WriteLine("NFOB: " + NFOB);
                 }
-
 
                 
                 // ========================================
                 // Ordena a população com base no fitness
                 // ========================================
 
-                // Ordena a populacao com base no f(x)
+                // Transforma a população e os fitness para array para poder ordenar
                 var populacao_array = populacao.ToArray();
-                var fx_array = fx.ToArray();
+                var fxs_array = fxs.ToArray();
                 
-                // Ordena a população com base no f(x)
-                Array.Sort(fx_array, populacao_array);
+                // Ordena a população com base no fitness
+                Array.Sort(fxs_array, populacao_array);
 
                 // Converte novamente os arrays para listas
                 populacao = populacao_array.ToList();
-                fx = fx_array.ToList();
+                fxs = fxs_array.ToList();
 
-                // Apresenta a população
+                // Apresenta a população ordenada
                 if(DEBUG_CONSOLE){
                     for(int i=0; i<populacao.Count; i++){
-                        Console.Write("Genotipo: ");
+                        Console.Write("Cromossomo: ");
                         print_bool_array(populacao[i]);
-                        Console.WriteLine("f(x): " + fx[i]);
+                        Console.WriteLine("f(x): " + fxs[i]);
                     }   
                 }
-                
-                // Adiciona o menor f(x) na lista de melhores resultados
-                // double melhor_fx = populacao[0].f_x;
-
-
+               
 
                 // ========================================
                 // Calcula a frequência acumulada
@@ -450,7 +380,6 @@ namespace SGA
                 List<double> freq_acumulada = CalculaFrequenciaAcumulada(populacao.Count);
                 
       
-      
                 // ========================================
                 // Cria a nova geração de indivíduos
                 // ========================================
@@ -458,9 +387,9 @@ namespace SGA
                 // Cria a nova geração de filhos até que o número seja igual ao da população atual
                 List<List<bool>> new_generation = new List<List<bool>>();
                 while(new_generation.Count < populacao.Count){
-                    // -------------------------------------------------------------
-                    // -------------------------- SELEÇÃO --------------------------
-                    // -------------------------------------------------------------
+                    // ==========================================
+                    // Operador de Seleção 
+                    // ==========================================
                     
                     List<bool> cromossomo_pai1 = SelecionaGenotipoPai(populacao, freq_acumulada);
                     List<bool> cromossomo_pai2 = SelecionaGenotipoPai(populacao, freq_acumulada);
@@ -476,9 +405,9 @@ namespace SGA
                     List<bool> cromossomo_filho1 = cromossomo_pai1;
                     List<bool> cromossomo_filho2 = cromossomo_pai2;
                     
-                    // -------------------------------------------------------------
-                    // ------------------------- CROSSOVER -------------------------
-                    // -------------------------------------------------------------
+                    // ==========================================
+                    // Operador de Crossover
+                    // ==========================================
                     
                     // Realiza o crossover conforme a probabilidade
                     if (random.NextDouble() > probabilidade_crossover){
@@ -498,9 +427,9 @@ namespace SGA
                         if(DEBUG_CONSOLE)   Console.WriteLine("Sem Crossover!");
                     }
 
-                    // -------------------------------------------------------------
-                    // -------------------------- MUTAÇÃO --------------------------
-                    // -------------------------------------------------------------        
+                    // ==========================================
+                    // Operador de Mutação
+                    // ==========================================
                     
                     cromossomo_filho1 = MutacaoBool(cromossomo_filho1, probabilidade_mutacao);
                     cromossomo_filho2 = MutacaoBool(cromossomo_filho2, probabilidade_mutacao);
@@ -523,22 +452,8 @@ namespace SGA
                 populacao = new_generation;
                 if(DEBUG_CONSOLE)   Console.WriteLine("======================================================");
             }
-                        
-            // // Apresenta os melhores resultados de cada geração
-            // double menor_fx_todos = melhor_fx_geracoes[0];
-            // if(DEBUG_CONSOLE)   Console.WriteLine("Melhor f(x) de todas as gerações: " + menor_fx_todos);
-            
-            // for(int i=0; i<melhor_fx_geracoes.Count; i++){
-            //     double best = melhor_fx_geracoes[i];
-            //     if(DEBUG_CONSOLE)   Console.WriteLine("Melhor na geração "+i+": "+best);
-                
-            //     // Se esse melhor foi melhor que todos, atualiza o melhor de todos
-            //     if (best < menor_fx_todos){
-            //         menor_fx_todos = best;
-            //     }
-            // }
 
-            // Retorna os melhores a cada NFOB
+            // Retorna os melhores valores fitness a cada NFOB
             return melhores_NFOB;
         }
 
@@ -555,17 +470,18 @@ namespace SGA
             const int tamanho_genotipo = 140;
             const int criterio_parada_nro_avaliacoes_funcao = 100000;
             DEBUG_CONSOLE = false;
+            List<int> NFOBs = new List<int>(){250,500,750,1000,1500,2000,3000,4000,5000,6000,7000,8000,9000,10000,15000,20000,25000,30000,40000,50000,60000,70000,80000,90000,100000};
             
             // Inicializa o temporizador
             var total_watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Executa o SGA e recebe com retorno os NFOB
-            List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
+            List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao, NFOBs);
 
             // Apresenta os resultados
             Console.WriteLine("-----------------");
             for(int j=0; j<SGA_bests_NFOB.Count; j++){
-                Console.WriteLine(SGA_bests_NFOB[j]);
+                Console.WriteLine(NFOBs[j] + ": " + SGA_bests_NFOB[j]);
             }
             Console.WriteLine("-----------------");
 
