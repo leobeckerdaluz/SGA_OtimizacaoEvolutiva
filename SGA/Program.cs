@@ -467,6 +467,7 @@ namespace SGA
             const double probabilidade_mutacao = 0.005;
             const double probabilidade_crossover = 0.2;
             const int tamanho_populacao = 120;
+            
             // Parâmetros de execução
             const int tamanho_genotipo = 140;
             const int criterio_parada_nro_avaliacoes_funcao = 100000;
