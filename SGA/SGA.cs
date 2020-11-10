@@ -8,8 +8,8 @@ namespace SGA
     public class SGA
     {
         // Inicializa as variáveis globais estáticas
-        private static Random random = new Random();
-        private static bool DEBUG_CONSOLE = false;
+        public static Random random = new Random();
+        public static bool DEBUG_CONSOLE = false;
 
         
 
@@ -49,7 +49,7 @@ namespace SGA
         - Retorno:
             List<List<bool>>: Lista contendo os dois cromossomos filhos gerados
         */
-        private static List<List<bool>> CrossoverBool(List<bool> individuo1, List<bool> individuo2){
+        public static List<List<bool>> CrossoverBool(List<bool> individuo1, List<bool> individuo2){
             // Os cromossomos possuem tamanhos iguais, então obtém uma
             // ... posição entre 0 e o tamanho de um dos cromossomos.
             int posicao_crossover = random.Next(0, individuo1.Count);
@@ -88,7 +88,7 @@ namespace SGA
         - Retorno:
             List<bool>: Cromossomo mutado
         */
-        private static List<bool> MutacaoBool(List<bool> cromossomo, double probabilidade_mutacao){
+        public static List<bool> MutacaoBool(List<bool> cromossomo, double probabilidade_mutacao){
             // Percorre o cromossomo e muta cada bit com determinada probabilidade
             for(int i=0; i<cromossomo.Count; i++){
                 if (random.NextDouble() < probabilidade_mutacao){
@@ -193,7 +193,7 @@ namespace SGA
         /*
         Função para printar um cromossomo - DEBUG
         */
-        private static void print_bool_array(List<bool> boolarray){
+        z static void print_bool_array(List<bool> boolarray){
             foreach(bool bit in boolarray){
                 Console.Write( (bit ? "1" : "0") );
             }
@@ -213,7 +213,7 @@ namespace SGA
         - Retorno:
             double: Valor da função objetivo
         */
-        private static double funcao_objetivo(List<bool> cromossomo){
+        public static double funcao_objetivo(List<bool> cromossomo){
             // Calcula o fenótipo de cada variável de projeto a partir do genótipo.
             const int n_variaveis_projeto = 10;  
             const double function_min = -600.0;
@@ -462,7 +462,7 @@ namespace SGA
         /*
         Main
         */
-        static void Main(string[] args){
+        public static void Main(string[] args){
             // Parâmetros de ajuste
             const double probabilidade_mutacao = 0.005;
             const double probabilidade_crossover = 0.2;
