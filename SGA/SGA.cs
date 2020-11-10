@@ -477,84 +477,90 @@ namespace SGA
             // Inicializa o temporizador
             var total_watch = System.Diagnostics.Stopwatch.StartNew();
 
+
+
+            // ================================================
+            // =============== 1 EXECUÇÃO =====================
+            // ================================================
+            
             // Executa o SGA e recebe com retorno os NFOB
             List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao, NFOBs);
 
             // Apresenta os resultados
             Console.WriteLine("-----------------");
             for(int j=0; j<SGA_bests_NFOB.Count; j++){
-                Console.WriteLine(NFOBs[j] + ": " + SGA_bests_NFOB[j]);
+                // Console.WriteLine(NFOBs[j] + ": " + SGA_bests_NFOB[j]);
+                Console.WriteLine(SGA_bests_NFOB[j]);
             }
             Console.WriteLine("-----------------");
+            // ================================================
 
-            // Para o temporizados
+
+
+
+            /*
+            // ================================================
+            // ============== 50 EXECUÇÕES ====================
+            // ================================================
+
+            // Cria lista para armazenar os NFOBs de cada execução            
+            List<List<double>> todas_execucoes_SGA_NFOB = new List<List<double>>();
+
+            // Cria listas com os parâmetros testes a serem realizados
+            List<double> crossovers = new List<double>(){0.1, 0.2, 0.4, 0.6, 0.8, 1};
+            List<double> populacoes = new List<double>(){10, 20, 40, 80, 120, 160};
+            List<double> mutacoes = new List<double>(){0.005, 0.01, 0.05, 0.1, 0.3, 0.5};
+
+            foreach (double probabilidade_mutacao in mutacoes){
+                Console.WriteLine("Probabilidade Crossover: " + probabilidade_crossover);
+                Console.WriteLine("Tamanho Populacao: " + populacao);
+                Console.WriteLine("Probabilidade Mutação: " + probabilidade_mutacao);
+                const int numero_execucoes = 2;
+                for(int i=0; i<numero_execucoes; i++){
+                    // Executa o SGA
+                    List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
+
+                    // Apresenta o melhor resultado
+                    Console.WriteLine("Execução " + i + ": " + SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
+                    // Console.WriteLine(SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
+
+                    // Console.WriteLine("-----------------");
+                    // Console.WriteLine("Resultados:");
+                    // foreach (double result in SGA_bests_NFOB){
+                    //     Console.WriteLine(result);
+                    // }
+                    // Console.WriteLine("-----------------");
+
+                    Console.WriteLine("Tamanho melhores_NFOB: " + melhores_NFOB.Count);
+                    Console.WriteLine("Tamanho SGA_bests_NFOB: " + SGA_bests_NFOB.Count);
+                    
+                    // Adiciona na lista de execuções a execução atual
+                    todas_execucoes_SGA_NFOB.Add(SGA_bests_NFOB);
+                }
+            }
+
+            // Apresenta os resultados das N execuções
+            const int NFOBs = 25;
+            for(int NFOB=0; NFOB<NFOBs; NFOB++){
+                double sum = 0;
+                foreach(List<double> execution in todas_execucoes_SGA_NFOB){
+                    sum += execution[NFOB];
+                }
+                double media = sum / (double)todas_execucoes_SGA_NFOB.Count;
+                // Console.WriteLine("Soma do NFOB " + NFOB + ": " + sum);
+                // Console.WriteLine("Média do NFOB " + NFOB + ": " + media);
+                Console.WriteLine(media);
+            }
+            // ================================================
+            */
+
+
+            // Para o temporizado
             total_watch.Stop();
 
             // Calcula o tempo de execução
             var elapsedMs = total_watch.ElapsedMilliseconds;
             Console.WriteLine("Tempo total de execução: " + elapsedMs/1000.0 + " segundos");
-
-
-
-
-            // List<List<double>> todas_execucoes_SGA_NFOB = new List<List<double>>();
-
-            // // // List<double> crossovers = new List<double>(){0.1, 0.2, 0.4, 0.6, 0.8, 1};
-            // // // List<double> populacoes = new List<double>(){10, 20, 40, 80, 120, 160};
-            // // List<double> mutacoes = new List<double>(){0.005, 0.01, 0.05, 0.1, 0.3, 0.5};
-            // // foreach (double probabilidade_mutacao in mutacoes){
-            //     // Console.WriteLine("Probabilidade Crossover: " + probabilidade_crossover);
-            //     // Console.WriteLine("Tamanho Populacao: " + populacao);
-            //     // Console.WriteLine("Probabilidade Mutação: " + probabilidade_mutacao);
-            //     const int numero_execucoes = 50;
-            //     for(int i=0; i<numero_execucoes; i++){
-            //         // // Começa a contar o tempo de execução
-            //         // var watch = System.Diagnostics.Stopwatch.StartNew();
-                    
-            //         // Executa o SGA
-            //         List<double> SGA_bests_NFOB = Algoritmo_Genetico_Simples(probabilidade_mutacao, probabilidade_crossover, tamanho_populacao, tamanho_genotipo, criterio_parada_nro_avaliacoes_funcao);
-
-            //         // Adiciona na lista de execuções a execução atual
-            //         todas_execucoes_SGA_NFOB.Add(SGA_bests_NFOB);
-
-                    
-            //         // // Encerra o timer
-            //         // watch.Stop();
-
-            //         // Apresenta o melhor resultado
-            //         // Console.WriteLine("Resultados:");
-            //         // foreach (double result in SGA_bests_NFOB){
-            //         //     Console.WriteLine(result);
-
-            //         // }
-            //         // Console.WriteLine("Execução " + i + ": " + SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
-            //         // Console.WriteLine("Execução " + i + ": ");
-            //         // Console.WriteLine(SGA_bests_NFOB[SGA_bests_NFOB.Count - 1]);
-            //         // Console.WriteLine("-----------------");
-            //         // for(int j=0; j<SGA_bests_NFOB.Count; j++){
-            //         //     Console.WriteLine(SGA_bests_NFOB[j]);
-            //         // }
-            //         // Console.WriteLine("-----------------");
-            //         // Console.WriteLine("Tamanho melhores_NFOB: " + melhores_NFOB.Count);
-            //         // Console.WriteLine("Tamanho SGA_bests_NFOB: " + SGA_bests_NFOB.Count);
-                    
-            //         // Obtém o tempo de execução
-            //         // var elapsedMs = watch.ElapsedMilliseconds;
-            //         // Console.WriteLine("Tempo de execução: " + elapsedMs/1000.0 + " segundos");
-            //     }
-            // // }
-
-            // const int NFOBs = 25;
-            // for(int NFOB=0; NFOB<NFOBs; NFOB++){
-            //     double sum = 0;
-            //     foreach(List<double> execution in todas_execucoes_SGA_NFOB){
-            //         sum += execution[NFOB];
-            //     }
-            //     double media = sum / (double)todas_execucoes_SGA_NFOB.Count;
-            //     // Console.WriteLine("Soma do NFOB " + NFOB + ": " + sum);
-            //     // Console.WriteLine("Média do NFOB " + NFOB + ": " + media);
-            //     Console.WriteLine(media);
-            // }
         }
     }
 }
