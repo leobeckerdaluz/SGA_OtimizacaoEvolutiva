@@ -58,7 +58,8 @@ Para alterar os parâmetros de ajuste e de execução do código, é necessário
 - **Windows:** 
    - **Requisitos:** É necessário instalar alguma versão do **Visual Studio** para a execução do projeto.
    - **Execução:** Acesse a pasta **`/SGA`** deste repositório e execute o arquivo **`SGA.cs`**
-
+- **Online:** 
+   - É possível utilizar um compilador C# online para executar a aplicação. Para isso, é necessário abrir o código fonte em um editor e copiá-lo. A seguir, acesse o site [.NET Fiddle](https://dotnetfiddle.net/) e cole o código lá. Então é só executar.
 
 ## Implementações Futuras
    * Adição de controle para quando o problema é de maximização ou de minimização
