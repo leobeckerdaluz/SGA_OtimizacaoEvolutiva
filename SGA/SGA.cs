@@ -460,7 +460,18 @@ namespace SGA
         
 
         /*
-        Main
+        Main - Testes Realizados
+            - Essa é a função principal da aplicação. Aqui são realizados todos os testes
+            para a geração dos resultados. Há 5 blocos de código abaixo. Portanto, para
+            executar cada um desses testes é necessário descomentar o bloco de código
+            relacionado ao teste. 
+            Os testes estão listados abaixo:
+                ===> 1 execução do SGA: Pop = 120 | Pc = 0,1 | Pm = 0,005
+                ===> 50 execuções do SGA: Pop = VARIANDO | Pc = 0,6 | Pm = 0,01
+                ===> 50 execuções do SGA: Pop = 120 | Pc = VARIANDO | Pm = 0,01
+                ===> 50 execuções do SGA: Pop = 120 | Pc = 0,1 | Pm = VARIANDO
+                ===> 50 execuções do SGA: Pop = 120 | Pc = 0,1 | Pm = 0,005 + Média 
+
         */
         public static void Main(string[] args){
             // Inicializa o temporizador
