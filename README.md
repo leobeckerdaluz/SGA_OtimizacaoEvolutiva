@@ -62,5 +62,4 @@ Para alterar os parâmetros de ajuste e de execução do código, é necessário
    - É possível utilizar um compilador C# online para executar a aplicação. Para isso, é necessário abrir o código fonte em um editor e copiá-lo. A seguir, acesse o site [.NET Fiddle](https://dotnetfiddle.net/) e cole o código lá. Então é só executar.
 
 ## Implementações Futuras
-   * Adição de controle para quando o problema é de maximização ou de minimização
-   * Alteração do cálculo de frequência acumulada em problema de maximização, visando adicionar a roda da roleta.
+   * Alteração do cálculo de adaptabilidade para quando o problema é de maximização.
