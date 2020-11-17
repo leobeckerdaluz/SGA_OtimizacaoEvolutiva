@@ -231,7 +231,7 @@ namespace SGA
 
 
         /*
-        Função para printar um cromossomo - DEBUG CONSOLE
+        Função que somente é executada no modo DEBUG. Ela serve para printar um cromossomo na tela
         */
         public static void ApresentaCromossomoBool(List<bool> boolarray){
             foreach(bool bit in boolarray){
@@ -527,9 +527,6 @@ namespace SGA
             // ================================================================
             // 1 EXECUÇÃO
             // ================================================================
-            // Para realizar somente 1 execução do SGA, descomente 
-            // ... esse bloco de código e comente o próximo bloco 
-            // ... abaixo referente à 50 execuções.
             
             // Parâmetros de ajuste
             const double probabilidade_mutacao = 0.005;
@@ -729,11 +726,6 @@ namespace SGA
             Console.WriteLine("=========================================================");
             // ================================================================
             */
-
-
-
-
-            
         }
     }
 }

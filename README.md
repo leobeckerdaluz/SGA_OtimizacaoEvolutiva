@@ -38,8 +38,12 @@ ________________________________________________________
     - Probabilidade de mutação (Pm)
     - Tamanho do cromossomo
     - Número de avaliações da função objetivo (Critério de parada)
+    - Número de bits por variável de projeto
+    - Número de variáveis de projeto
+    - Valor mínimo para mapear o fenótipo de uma variável
+    - Valor máximo para mapear o fenótipo de uma variável
 - **Parâmetros de Execução:**
-    - Lista contendo valores de NFOB. Quando o algoritmo atinge cada um desses números de avaliações da função objetivo, o melhor valor da execução até o momento é armazenada (Lista de valores retornada ao final da execução).
+    - Lista contendo valores de NFOB. Quando o algoritmo atinge cada um desses números de avaliações da função objetivo, o melhor valor da execução até o momento é armazenada (Essa lista de fitness é retornada pelo SGA ao final da execução da função).
 
 
 ## Fluxograma da Execução
